@@ -16,6 +16,41 @@ yarn add state-modules
 
 When complete, this library will provide 100% Flow Coverage
 
+## Reference Documentation
+
+### `createState` (default export)
+
+```javascript
+import createState from "state-modules";
+```
+
+#### Type Signature
+
+```javascript
+createState(config: StateManagerConfig): StateManager
+```
+
+### type `StateManagerConfig`
+
+#### Type Signature
+
+```javascript
+type StateManagerConfig = {|
+  config: {|
+    mid: string
+  |},
+  hooks?: {|
+    before?: Iterable<BeforeHookFunction>,
+    change?: Iterable<StateChangeHookFunction>,
+    after?: Iterable<AfterHookFunction>,
+    error?: Iterable<ErrorHookFunction>
+  |},
+  selectors?: {
+    [selectorID: string]: StateSelector
+  }
+|};
+```
+
 ## Example: state-modules
 
 Example below is incomplete
@@ -27,7 +62,10 @@ const state = createState({
   config: { mid: "my-module" },
   // Hooks allow simple hooking into the lifecycle of the state
   hooks: {
+    // Before action is dispatched, may return an action with new properties
     before: [action => console.group("DISPATCHING: ", action)],
+    // Whenever the state changes, gets previous and next as well as an object
+    // with only the changed values.
     change: [
       (prevState, nextState, changedValues) =>
         console.log(
@@ -39,7 +77,9 @@ const state = createState({
           changedValues
         )
     ],
+    // After the dispatch has occurred.
     after: [() => console.groupEnd()],
+    // Any error that occurs within the realm of the dispatch
     error: [e => console.error("Error: ", e)]
   }
 });
@@ -53,10 +93,12 @@ state.create({
       value: "one"
     }
   },
+  // selectors are used to capture common data structures and values
+  // of our state to be used
   selectors: {
     value: state => state.data.value
   },
-  // actions to dispatch when called
+  // actions to dispatch when called.
   actions: {
     // state.actions.sweet(1, 2) --> state.dispatch({ type: 'SWEET', paramOne: 1, paramTwo: 2 })
     sweet: ["paramOne", "paramTwo"]
