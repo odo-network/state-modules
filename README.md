@@ -140,6 +140,11 @@ class MyComponent extends React.Component {
   }
 }
 
+/*
+Below would be the same in this case as:
+
+state.connect()(MyComponent)
+*/
 export default state.connect(
   /* Indicate the shape of the state based on imported selectors */
   (selectors, state) => ({
