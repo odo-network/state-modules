@@ -46,9 +46,7 @@ const state = createState({
 
 // Create a State Component to add to our module
 state.create({
-  config: {
-    cid: "my-first-component"
-  },
+  config: { cid: "my-first-component" },
   // initial state to merge into module (no collisions allowed)
   state: {
     data: {
@@ -74,9 +72,7 @@ state.create({
 // State Components can be split up - they will be merged and validated with errors thrown if there are
 // any conflicts.
 state.create({
-  config: {
-    cid: "my-first-component-async"
-  },
+  config: { cid: "my-first-component-async" },
   actions: {
     // --> { type: 'SWEET_ASYNC', ... }
     sweetAsync: ["paramOne", "paramTwo"]
