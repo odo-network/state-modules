@@ -157,12 +157,33 @@ type StateComponentConfig = {
       state.counter.count -= action.by || 1;
     },
   },
+  hooks: {
+    loads: () => {
+
+    },
+    before: action => {
+
+    },
+    change: (prevState, nextState, changedValues) => {
+
+    },
+    error: e => {
+
+    },
+    after: () => {
+
+    },
+  },
   /* Sagas allow us to handle side effects that need to occur before state can be updated */
   //  * Additionally, certain keys can be defined to hook into a state modules lifecycle
   sagas: {
-    async starts() {
+    async componentWillMount() {
       console.log('APP_READY Received: Counter Process Starts');
     },
+    async actionWillDispatch(action) {
+
+    },
+
     // Taking the second argument indicates that we need to read and/or mutate the state.
     // Mutating the provided state object will create an "update" event.
     async handleIncrement(action, state, lock) {
