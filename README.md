@@ -37,7 +37,7 @@ createState(config: StateManagerConfig): StateManager
 ```javascript
 type StateManagerConfig = {|
   config: {|
-    mid: string
+    mid: StateModuleID
   |},
   hooks?: {|
     before?: Iterable<BeforeHookFunction>,
@@ -92,6 +92,93 @@ interface StateManager {
     +type: string,
     [key: string]: any
   }): Promise<void | StateNewState>;
+}
+```
+
+### type `StateComponentConfig`
+
+#### Type Signature
+
+```javascript
+type StateComponentConfig = {
+  config: {|
+    cid: StateComponentID,
+    prefix: StateActionPrefix,
+    loadsOnAction: StateActionType
+  |}
+};
+```
+
+#### Example
+
+```javascript
+{
+  config: {
+    /* Unique Component ID */
+    cid: 'counter',
+    /* Prefixes all types with COUNTER_ when defined */
+    prefix: 'COUNTER',
+    /* Asynchronously loads the scope and runs the process when APP_READY is dispatched */
+    loadsOnAction: 'APP_READY',
+    /* We can also use a function here */
+    // loadsOnAction: action => action.type === 'APP_READY'
+  },
+  /* Asynchronously loaded Scope - loaded before the "componentWillMount" function */
+  //  Available as this.scope to any functions called
+  scope: () => import('./scope'),
+  /* Extend the Core Schema - Will error if collides with another value */
+  /* When keys collide on a common state value, they are merged.  Colissions on defined keys will provide errors. */
+  state: {
+    counter: {
+      count: 0,
+    },
+    settings: {
+      lastCounterSet: 0,
+    },
+  },
+  /* Actions are used to create action creators `set: ['to']` dispatches `{ type: 'COUNTER_SET', to: arguments[0] }` */
+  actions: {
+    set: ['to'],
+    increment: ['by'],
+    decrement: ['by'],
+  },
+  /* routes allows you to create side effects for various dispatched actions, these will call your sagas based on the route given */
+  routes: {
+    increment: 'handleIncrement',
+  },
+  /* All state is immutable by default.  "Mutating" in a reducer is not mutating our actual state, but simply a "draft" state */
+  //  * Since state is immutable across the board, if the actual values do not change while reduced, our components will not re-render
+  reducers: {
+    SET: (action, state) => {
+      state.counter.count = action.to;
+      state.settings.lastCounterSet = Date.now();
+    },
+    DECREMENT: (action, state) => {
+      state.counter.count -= action.by || 1;
+    },
+  },
+  /* Sagas allow us to handle side effects that need to occur before state can be updated */
+  //  * Additionally, certain keys can be defined to hook into a state modules lifecycle
+  sagas: {
+    async starts() {
+      console.log('APP_READY Received: Counter Process Starts');
+    },
+    // Taking the second argument indicates that we need to read and/or mutate the state.
+    // Mutating the provided state object will create an "update" event.
+    async handleIncrement(action, state, lock) {
+      // If we want to "lock" our state until this function resolves, we may lock it, this forces
+      // future calls to be deferred
+      // lock('queue' | 'ignore' | 'error' | Function);
+      console.log('INCREMENT Received - Incrementing by: ', action.by);
+      state.counter.count += action.by || 1;
+      state.settings.lastCounterSet = Date.now();
+    },
+  },
+  /* Selectors are used to provide components with simple imported pieces of the state */
+  selectors: {
+    count: state => state.counter.count,
+    lastSet: state => state.settings.lastCounterSet,
+  },
 }
 ```
 
