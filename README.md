@@ -61,7 +61,13 @@ type StateManagerConfig = {|
     before: [action => console.group('DISPATCHING: ', action)],
     change: [
       (prevState, nextState, changedValues) =>
-        console.log('State Changed from: \n', prevState, '\n --> to --> \n', nextState, '\n', changedValues),
+        console.log(
+          'State Changed from: \n',
+          prevState,
+          '\n --> to --> \n',
+          nextState, '\n',
+          changedValues
+        ),
     ],
     error: [e => console.error('Error: ', e)],
     after: [() => console.groupEnd()],
