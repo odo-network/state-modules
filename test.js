@@ -1,4 +1,4 @@
-import createState from './src/index';
+import createState from './dist/index';
 
 const state = createState({
   config: { mid: 'my-module' },

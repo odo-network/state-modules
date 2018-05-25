@@ -1,7 +1,7 @@
 {
   "name": "state-modules",
   "description": "A lightweight immutable state management library",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "author": "Braden R. Napier",
   "private": false,
   "license": "MIT",
@@ -24,11 +24,13 @@
     "@babel/cli": "^7.0.0-beta.48",
     "@babel/core": "^7.0.0-beta.48",
     "@babel/node": "^7.0.0-beta.48",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0-beta.48",
+    "@babel/plugin-transform-runtime": "^7.0.0-beta.49",
     "@babel/preset-env": "^7.0.0-beta.48",
     "@babel/preset-flow": "^7.0.0-beta.48",
     "@babel/preset-stage-0": "^7.0.0-beta.48",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-eslint": "^8.2.3",
+    "babel-eslint": "8.2.1",
     "babel-plugin-lodash": "^3.3.2",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
@@ -42,6 +44,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.49",
     "immer": "^1.3.0",
     "lodash": "^4.17.10",
     "to-redux-type": "^1.2.3"

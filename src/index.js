@@ -24,6 +24,7 @@ async function handleStateChange(priv, prevState, nextState) {
   if (priv.hooks) {
     await handleAsyncHook('change', priv, priv.state, nextState, changedValues);
   }
+  // eslint-disable-next-line no-param-reassign
   priv.state = nextState;
   return changedValues;
 }
@@ -52,22 +53,27 @@ async function handleRouteAction(priv, action) {
   const { type } = action;
   let stateChanged = false;
   let changedValues;
+
   const nextState = produce(priv.state, draftState => {
     priv.reducers.get(type)?.forEach((descriptor, reducer) => {
       reducer.call(priv.context, action, draftState);
     });
   });
+
   if (priv.state !== nextState) {
     stateChanged = true;
     changedValues = handleStateChange(priv, priv.state, nextState);
   }
+
   const routes = priv.routes.get(type);
   if (routes) await handleAsyncRoutes(priv, action, routes);
+
   return { stateChanged, changedValues };
 }
 
 async function handleAsyncActionHook(hook, priv, action) {
   let nextAction = action;
+
   if (priv.hooks?.[hook]) {
     for (const hookFn of priv.hooks[hook]) {
       const newAction = await hookFn.call(priv.context, action);
@@ -76,11 +82,13 @@ async function handleAsyncActionHook(hook, priv, action) {
       }
     }
   }
+
   if (!nextAction.type) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
       priv.config.mid
     } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
   }
+
   return nextAction;
 }
 
@@ -117,21 +125,22 @@ class StateManager {
       Object.assign(priv.config, config);
     } else {
       i += 1;
-      config.mid = `state-module-${i}`;
+      priv.config.mid = `state-module-${i}`;
     }
     this.mid = config.mid;
+
     if (selectors) priv.selectors = Object.assign({}, selectors);
     if (hooks) priv.hooks = Object.assign({}, hooks);
 
     priv.context = {
       get state() {
-        return self.state;
+        return priv.state;
       },
       get actions() {
-        return self.actions;
+        return priv.actions;
       },
       get selectors() {
-        return self.selectors;
+        return priv.selectors;
       },
       dispatch: self.dispatch,
     };
@@ -180,18 +189,14 @@ class StateManager {
       if (priv.reducers.has(action.type) || priv.routes.has(action.type)) {
         ({ stateChanged, changedValues } = await handleRouteAction(priv, action));
       }
-      if (priv.hooks) {
-        await handleAsyncHook('after', priv, stateChanged, changedValues);
-      }
+      await handleAsyncHook('after', priv, stateChanged, changedValues);
     } catch (e) {
       console.error(
         `[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | An Error occurred while dispatching action: `,
         action,
         e,
       );
-      if (priv.hooks) {
-        await handleAsyncHook('error', priv, e);
-      }
+      await handleAsyncHook('error', priv, e);
       throw e;
     }
     return changedValues;

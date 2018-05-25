@@ -20,5 +20,15 @@
       }
     ]
   ],
-  "plugins": ["lodash"]
+  "plugins": [
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "regenerator": true,
+        "polyfill": true
+      }
+    ],
+    "lodash",
+    "@babel/plugin-proposal-optional-chaining"
+  ]
 }

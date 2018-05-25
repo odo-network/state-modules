@@ -25,6 +25,8 @@
     "class-methods-use-this": "off",
     "no-underscore-dangle": "off",
     "no-use-before-define": "off",
+    "no-unused-expressions": "off",
+    "no-restricted-syntax": "off",
     "max-len": [
       "error",
       {
