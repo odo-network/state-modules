@@ -8,6 +8,7 @@
   "main": "dist/index.js",
   "scripts": {
     "postinstall": "npm-run-all flow:flow-typed",
+    "prepublish": "npm-run-all build",
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "build": "babel -d dist src",
     "try": "babel-node ./test.js"
