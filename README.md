@@ -18,7 +18,7 @@ When complete, this library will provide 100% Flow Coverage
 
 ## Reference Documentation
 
-### `createState` (default export)
+### function `createState` (default export)
 
 ```javascript
 import createState from "state-modules";
