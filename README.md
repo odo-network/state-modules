@@ -53,21 +53,34 @@ state.create({
       value: "one"
     }
   },
+  selectors: {
+    value: state => state.data.value
+  },
   // actions to dispatch when called
   actions: {
     // state.actions.sweet(1, 2) --> state.dispatch({ type: 'SWEET', paramOne: 1, paramTwo: 2 })
-    sweet: ["paramOne", "paramTwo"],
-    // --> { type: 'SWEET_ASYNC', ... }
-    sweetAsync: ["paramOne", "paramTwo"]
-  },
-  routes: {
-    sweetAsync: "handleSweetAsync"
+    sweet: ["paramOne", "paramTwo"]
   },
   reducers: {
     SWEET: (action, draftState) => {
       // data is immutable - we are actually mutating a proxy (@see immer)
       draftState.data.value = action.paramOne + action.paramTwo;
     }
+  }
+});
+
+// State Components can be split up - they will be merged and validated with errors thrown if there are
+// any conflicts.
+state.create({
+  config: {
+    cid: "my-first-component-async"
+  },
+  actions: {
+    // --> { type: 'SWEET_ASYNC', ... }
+    sweetAsync: ["paramOne", "paramTwo"]
+  },
+  routes: {
+    sweetAsync: "handleSweetAsync"
   },
   sagas: {
     async handleSweetAsync(action) {
@@ -86,7 +99,9 @@ state.actions.sweet(1, 2).then(changedValues => {
   // in this case changedValues is the same as the state
 });
 
-state.actions.sweetAsync(1, 2).then(changedValues => {
-  // same as above in this case but routes through the handleSweetAsync first
+state.actions.sweetAsync(4, 5).then(changedValues => {
+  // state is { data: { value: 45 } }
+  // in this case changedValues is the same as the state
+  state.select("value"); // 45
 });
 ```
