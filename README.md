@@ -149,11 +149,11 @@ type StateComponentConfig = {
   /* All state is immutable by default.  "Mutating" in a reducer is not mutating our actual state, but simply a "draft" state */
   //  * Since state is immutable across the board, if the actual values do not change while reduced, our components will not re-render
   reducers: {
-    SET: (action, state) => {
+    SET(action, state) {
       state.counter.count = action.to;
       state.settings.lastCounterSet = Date.now();
     },
-    DECREMENT: (action, state) => {
+    DECREMENT(action, state) {
       state.counter.count -= action.by || 1;
     },
   },
