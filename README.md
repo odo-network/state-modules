@@ -51,6 +51,26 @@ type StateManagerConfig = {|
 |};
 ```
 
+### interface `StateManager`
+
+#### Type Signature
+
+```javascript
+interface StateManager {
+  get modules(): Array<StateComponentID>;
+  get actions(): StateActionDispatchers;
+  create(...modules: Array<StateComponentConfig>): StateManager;
+  connect(
+    withState: StateConnectState,
+    withDispatchers: StateConnectDispatchers
+  ): (component: React.Component<*>) => React.Component<*>;
+  dispatch(action: {
+    +type: string,
+    [key: string]: any
+  }): Promise<void | StateNewState>;
+}
+```
+
 ## Example: state-modules
 
 Example below is incomplete
