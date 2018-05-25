@@ -16,7 +16,7 @@ yarn add state-modules
 
 When complete, this library will provide 100% Flow Coverage
 
-## Example
+## Example: state-modules
 
 Example below is incomplete
 
@@ -106,4 +106,50 @@ state.actions.sweetAsync(4, 5).then(changedValues => {
   // in this case changedValues is the same as the state
   state.select("value"); // 45
 });
+```
+
+## Example: react-state-modules
+
+### UNFINISHED
+
+> Example is preliminary example and not yet complete.
+
+```javascript
+import * as React from "react";
+import state from "./state";
+
+class MyComponent extends React.Component {
+  componentWillMount() {
+    const { app } = this.props.actions;
+    // asynchronously loads counter whichs "loadsOnAction" APP_READY
+    app.ready();
+  }
+  componentDidMount() {
+    const { counter } = this.props.actions;
+    // dispatches { type: 'COUNTER_INCREMENT', by: 1 }
+    counter.increment(1);
+  }
+  render() {
+    const { state, actions } = this.props;
+    return (
+      <div>
+        <div>Current Count: ${state.count}</div>
+        <button onClick={actions.counter.increment}>Increment</button>
+      </div>
+    );
+  }
+}
+
+export default state.connect(
+  /* Indicate the shape of the state based on imported selectors */
+  (selectors, state) => ({
+    value: selectors.value
+  }),
+  /* Indicate the actions you wish to import */
+  //  Below is same as if we left empty or did actions => actions
+  actions => ({
+    sweet: actions.sweet,
+    sweetAsync: actions.sweetAsync
+  })
+)(MyComponent);
 ```
