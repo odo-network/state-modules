@@ -56,13 +56,37 @@ state.create({
   // actions to dispatch when called
   actions: {
     // state.actions.sweet(1, 2) --> state.dispatch({ type: 'SWEET', paramOne: 1, paramTwo: 2 })
-    sweet: ["paramOne", "paramTwo"]
+    sweet: ["paramOne", "paramTwo"],
+    // --> { type: 'SWEET_ASYNC', ... }
+    sweetAsync: ["paramOne", "paramTwo"]
+  },
+  routes: {
+    sweetAsync: "handleSweetAsync"
   },
   reducers: {
     SWEET: (action, draftState) => {
       // data is immutable - we are actually mutating a proxy (@see immer)
       draftState.data.value = action.paramOne + action.paramTwo;
     }
+  },
+  sagas: {
+    async handleSweetAsync(action) {
+      // not technically asynchronous in this case
+      await this.actions.sweet(action);
+    }
   }
+});
+
+// actions always return promise but will resolve synchronously
+// if there are no sagas involved with the dispatch
+//
+// state is { data: { value: 'one' } }
+state.actions.sweet(1, 2).then(changedValues => {
+  // state is { data: { value: 12 } }
+  // in this case changedValues is the same as the state
+});
+
+state.actions.sweetAsync(1, 2).then(changedValues => {
+  // same as above in this case but routes through the handleSweetAsync first
 });
 ```
