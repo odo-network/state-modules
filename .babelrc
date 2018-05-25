@@ -1,0 +1,24 @@
+{
+  "presets": [
+    "@babel/preset-flow",
+    [
+      "@babel/preset-env",
+      {
+        "cacheDirectory": true,
+        "shippedProposals": true,
+        "useBuiltIns": "usage",
+        "targets": {
+          "browsers": ["last 2 versions"]
+        }
+      }
+    ],
+    [
+      "@babel/preset-stage-0",
+      {
+        "useBuiltIns": true,
+        "decoratorsLegacy": true
+      }
+    ]
+  ],
+  "plugins": ["lodash"]
+}

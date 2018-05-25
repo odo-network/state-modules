@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "@babel/core": "^7.0.0-beta.48",
+    "@babel/node": "^7.0.0-beta.48",
+    "@babel/preset-env": "^7.0.0-beta.48",
+    "@babel/preset-flow": "^7.0.0-beta.48",
+    "@babel/preset-stage-0": "^7.0.0-beta.48",
+    "babel-core": "7.0.0-bridge.0",
+    "babel-eslint": "^8.2.3",
+    "babel-plugin-lodash": "^3.3.2",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-flowtype": "^2.47.1",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-promise": "^3.8.0",
+    "flow-bin": "^0.73.0",
+    "flow-typed": "^2.4.0"
+  }
+}

@@ -13,7 +13,7 @@ export default function connect(manager, modules, select) {
         const subscriber = createStateSubscription(modules, select, this);
         this.subscription = subscriber.subscribe({
           next: state => this.setState(() => state),
-          error: err => {},
+          // error: err => {},
         });
       }
       componentWillUnmount() {

@@ -4,16 +4,27 @@ import handleNewStateModule from './build';
 import { MODULE_NAME } from './context';
 import diff from './diff';
 
-import connectState from './connect';
-
 // Used for storing the private methods and properties of each manager
 const ManagerPrivateState = new WeakMap();
 
 // Used for automatic id assignment of state modules.
 let i = 0;
 
-function handleStateChange(prevState, nextState) {
+/**
+ * Called when the state is changed during an action dispatch.
+ * Builds a diff of the changed values and returns them.  Any other handling
+ * of changed state should occur here.
+ *
+ * @param {Object} priv The State Module's private state
+ * @param {Object} prevState Previous State
+ * @param {Object} nextState Changed State
+ */
+async function handleStateChange(priv, prevState, nextState) {
   const changedValues = diff(nextState, prevState);
+  if (priv.hooks) {
+    await handleAsyncHook('change', priv, priv.state, nextState, changedValues);
+  }
+  priv.state = nextState;
   return changedValues;
 }
 
@@ -48,11 +59,7 @@ async function handleRouteAction(priv, action) {
   });
   if (priv.state !== nextState) {
     stateChanged = true;
-    changedValues = handleStateChange(priv.state, nextState);
-    if (priv.hooks) {
-      await handleAsyncHook('change', priv, priv.state, nextState, changedValues);
-    }
-    priv.state = nextState;
+    changedValues = handleStateChange(priv, priv.state, nextState);
   }
   const routes = priv.routes.get(type);
   if (routes) await handleAsyncRoutes(priv, action, routes);
@@ -68,6 +75,11 @@ async function handleAsyncActionHook(hook, priv, action) {
         nextAction = newAction;
       }
     }
+  }
+  if (!nextAction.type) {
+    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+      priv.config.mid
+    } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
   }
   return nextAction;
 }
@@ -125,18 +137,29 @@ class StateManager {
     };
   }
 
+  /**
+   * Returns the components that have been added to the State Module.
+   */
   get components() {
     const priv = ManagerPrivateState.get(this);
     return [...priv.components.keys()];
   }
 
+  /**
+   * Returns the actions of the State Module which are wrapped in a dispatch() call.
+   */
   get actions() {
     const priv = ManagerPrivateState.get(this);
     return { ...priv.actions };
   }
 
+  /**
+   * Dispatches an action to be handled by the components within the State Module.
+   * @param {Object} action
+   */
   dispatch = async _action => {
     const priv = ManagerPrivateState.get(this);
+
     if (!_action) {
       throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Tried to dispatch an empty action`);
     } else if (!_action.type) {
@@ -152,13 +175,7 @@ class StateManager {
     try {
       if (priv.hooks) {
         action = await handleAsyncActionHook('before', priv, action);
-        if (!action) {
-          return;
-        } else if (!action.type) {
-          throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-            priv.config.mid
-          } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
-        }
+        if (!action) return;
       }
       if (priv.reducers.has(action.type) || priv.routes.has(action.type)) {
         ({ stateChanged, changedValues } = await handleRouteAction(priv, action));
@@ -180,15 +197,36 @@ class StateManager {
     return changedValues;
   };
 
+  /**
+   * Calls selectors and provides them with the current state.  When receiving a function
+   * the function will receive the selectors object and expects a selector to be returned.
+   *
+   * @param {string | (selectors) => selector} key Which selector should be called
+   */
   select = k => {
     const priv = ManagerPrivateState.get(this);
+    if (typeof k === 'function') {
+      return k(priv.selectors)(priv.state);
+    }
     return priv.selectors[k](priv.state);
   };
 
-  connect = (withModules, withState, withDispatchers) => {
+  /**
+   * Connect the State Module to some function using a higher-order function.
+   * Generally used with React to connect to components using react-state-modules
+   *
+   * @param {} withState
+   * @param {} withDispatchers
+   */
+  connect = (withState, withDispatchers) => {
     const priv = ManagerPrivateState.get(this);
+    if (typeof priv.config.connect !== 'function') {
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+        priv.config.mid
+      } | Connect was called on a module which was not provides a config.connect property.  You likely need to import "react-state-modules" and provide it to config.connect`);
+    }
     const dispatchers = withDispatchers(priv.actions);
-    return connectState(this, withModules, withState, dispatchers);
+    return priv.config.connect(this, withState, dispatchers);
   };
 
   create = (...modules) => {

@@ -1,5 +1,5 @@
 /* @flow */
-import _ from 'lodash';
+import _ from "lodash";
 
 // const r = objectDifference(
 //   {
@@ -41,19 +41,19 @@ type ObjectDifferenceParams = {
   shallowKeys: Array<string>,
   deepKeys: Array<string>,
   includeKeys: Array<string>,
-  ignoreKeys: Array<string>,
+  ignoreKeys: Array<string>
 };
 
 type ObjectDiffResponse = {
-  [changedKey: string]: any,
+  [changedKey: string]: any
 };
 
 type ObjectDifferenceParamArguments = {
-  ...ObjectDifferenceParams,
+  ...ObjectDifferenceParams
 };
 
 type ObjectDifferenceState = {
-  depth: number,
+  depth: number
 };
 
 const DEFAULT_PARAMS: ObjectDifferenceParams = {
@@ -76,11 +76,11 @@ const DEFAULT_PARAMS: ObjectDifferenceParams = {
   includeKeys: [],
   // any keys that should ALWAYS be ignored regardless
   // of if the value has changed.
-  ignoreKeys: [],
+  ignoreKeys: []
 };
 
 const DEFAULT_STATE: ObjectDifferenceState = {
-  depth: 0,
+  depth: 0
 };
 
 function checkObj(
@@ -88,7 +88,7 @@ function checkObj(
   obj: Object,
   source: Object,
   params: ObjectDifferenceParams,
-  state: ObjectDifferenceState,
+  state: ObjectDifferenceState
 ): void {
   // determine what to do with an object type
   // based on the params and state values.
@@ -98,7 +98,7 @@ function checkObj(
     if (params.ignoreKeys.includes(key)) {
       return;
     }
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
       diff[key] = _.cloneDeep(value);
     } else {
       diff[key] = value;
@@ -109,13 +109,19 @@ function checkObj(
     const value = obj[key];
     if (source[key] === undefined) {
       addValue(key, value);
-    } else if (!_.isEqual(source[key], value) || params.includeKeys.includes(key)) {
+    } else if (
+      !_.isEqual(source[key], value) ||
+      params.includeKeys.includes(key)
+    ) {
       // are we dealing with a plain object? { ...values }
       if (!_.isPlainObject(value)) {
         // arrays and plain values are copied over directly
         // TODO: Should we diff the array at some point?
         addValue(key, value);
-      } else if ((!params.deep || state.depth > params.depth) && !params.deepKeys.includes(key)) {
+      } else if (
+        (!params.deep || state.depth > params.depth) &&
+        !params.deepKeys.includes(key)
+      ) {
         // if we are not resolving deep or reached the depth
         // value, then we copy over the entire value.
         addValue(key, value);
@@ -144,14 +150,14 @@ function checkObj(
 export default function objectDifference(
   obj: Object,
   source: Object,
-  _params: ObjectDifferenceParamArguments = {},
+  _params: ObjectDifferenceParamArguments = {}
 ): ObjectDiffResponse {
   const params: ObjectDifferenceParams = {
     ...DEFAULT_PARAMS,
-    ..._params,
+    ..._params
   };
   const state: ObjectDifferenceState = {
-    ...DEFAULT_STATE,
+    ...DEFAULT_STATE
   };
   const diff = {};
   checkObj(diff, obj, source, params, state);
