@@ -51,6 +51,24 @@ type StateManagerConfig = {|
 |};
 ```
 
+#### Example
+
+```javascript
+{
+  config: { mid: 'my-module' },
+  // Hooks allow simple hooking into the lifecycle of the state
+  hooks: {
+    before: [action => console.group('DISPATCHING: ', action)],
+    change: [
+      (prevState, nextState, changedValues) =>
+        console.log('State Changed from: \n', prevState, '\n --> to --> \n', nextState, '\n', changedValues),
+    ],
+    error: [e => console.error('Error: ', e)],
+    after: [() => console.groupEnd()],
+  },
+}
+```
+
 ### interface `StateManager`
 
 #### Type Signature
