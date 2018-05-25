@@ -1,7 +1,7 @@
 {
   "name": "state-modules",
   "description": "A lightweight immutable state management library",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Braden R. Napier",
   "private": false,
   "license": "MIT",
@@ -12,6 +12,10 @@
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "build": "babel -d dist src",
     "try": "babel-node ./test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odo-network/state-modules/"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.48",
