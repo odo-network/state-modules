@@ -1,5 +1,6 @@
 // TODO: Remove lodash as dependency
 import _ from 'lodash';
+import produce from 'immer';
 import toSnakeCase from 'to-redux-type';
 import { MODULE_NAME, SAGA_LIFECYCLES } from './context';
 
@@ -24,12 +25,33 @@ function handleBuildState(priv, module, state) {
     console.warn(`[${MODULE_NAME}] | WARN | handleBuildState received empty state`);
     return;
   }
-  _.mergeWith(priv.state, state, (objValue, srcValue, key) => {
-    if (typeof srcValue !== 'object' && objValue !== undefined) {
-      // TODO : Output proper error formatting
-      console.error(objValue, srcValue, key);
-      throw new Error('ALREADY DEFINED');
+
+  priv.state = produce(priv.state, draftState => {
+    _.mergeWith(draftState, state, (objValue, srcValue, key) => {
+      if (typeof objValue !== 'object' && objValue !== undefined) {
+        // TODO : Output proper error formatting
+        console.error('FAIL: ', objValue, srcValue, key);
+        throw new Error('ALREADY DEFINED');
+      }
+    });
+  });
+}
+
+function handleBuildActions(priv, module, actions, _obj) {
+  const obj = _obj || priv.actions;
+  Object.keys(actions).forEach(_type => {
+    if (!Array.isArray(actions[_type]) && typeof actions[_type] === 'object') {
+      obj[_type] = obj[_type] || {};
+      return handleBuildActions(priv, module, actions[_type], obj[_type]);
+    } else if (obj[_type]) {
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | component action ${
+        module.config.cid
+      }/**/${_type} already exists on the state module`);
     }
+    const type = `${module.config.prefix}${toSnakeCase(_type)}`;
+    const args = actions[_type] || [];
+    const action = typeof args[0] === 'object' ? { ...args[0] } : {};
+    obj[_type] = (...fnargs) => handleBoundAction(priv, module.config.cid, type, args, action, ...fnargs);
   });
 }
 
@@ -111,18 +133,27 @@ export default function handleNewStateModule(priv, _module) {
 
   if (module.actions) {
     const actions = { ...module.actions };
-    if (!priv.actions[cid]) {
-      priv.actions[cid] = {};
+    if (!priv.actions) {
+      priv.actions = {};
     }
-    Object.keys(actions).forEach(_type => {
-      const type = `${module.config.prefix}${toSnakeCase(_type)}`;
-      const args = actions[_type] || [];
-      const action = typeof args[0] === 'object' ? { ...args[0] } : {};
-      priv.actions[cid][_type] = (...fnargs) => handleBoundAction(priv, cid, type, args, action, ...fnargs);
-    });
+    handleBuildActions(priv, module, actions);
   }
 
   if (module.selectors) {
-    Object.assign(priv.selectors, module.selectors);
+    if (!priv.selectors) {
+      priv.selectors = {};
+    }
+    Object.keys(module.selectors).forEach(selectorID => {
+      if (priv.selectors[selectorID]) {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+          priv.config.mid
+        } | Selector ID ${selectorID} was already added to the state module.`);
+      } else if (typeof module.selectors[selectorID] !== 'function') {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+          priv.config.mid
+        } | Selector ID ${selectorID} in ${cid} is not a function`);
+      }
+      priv.selectors[selectorID] = module.selectors[selectorID];
+    });
   }
 }

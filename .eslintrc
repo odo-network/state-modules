@@ -27,6 +27,7 @@
     "no-use-before-define": "off",
     "no-unused-expressions": "off",
     "no-restricted-syntax": "off",
+    "no-param-reassign": "off",
     "max-len": [
       "error",
       {

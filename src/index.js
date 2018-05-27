@@ -80,10 +80,13 @@ async function handleAsyncActionHook(hook, priv, action) {
       if (typeof newAction === 'object') {
         nextAction = newAction;
       }
+      if (nextAction === null) {
+        break;
+      }
     }
   }
 
-  if (!nextAction.type) {
+  if (nextAction !== null && !nextAction.type) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
       priv.config.mid
     } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
@@ -100,18 +103,46 @@ async function handleAsyncHook(hook, priv, ...args) {
   }
 }
 
+function parseModuleSettings(_settings) {
+  const settings = { ..._settings };
+  // Check to see if a module id (mid) is provided in the "config" property and auto create one if not
+  settings.config = Object.assign({}, settings.config);
+  if (!settings.config.mid) {
+    i += 1;
+    settings.config.mid = `state-module-${i}`;
+  }
+  // Check if hooks are defined, if they are remove them if they do not contain at least a single entry
+  // Also allows hooks to return any value other than function to indicate they should not be included.
+  // Empty hooks after parsing end up being removed all together.
+  if (settings.hooks) {
+    settings.hooks = Object.assign({}, settings.hooks);
+    Object.keys(settings.hooks).forEach(hook => {
+      if (Array.isArray(settings.hooks[hook]) || settings.hooks[hook] instanceof Set) {
+        settings.hooks[hook] = Array.from(settings.hooks[hook]).filter(h => typeof h === 'function');
+        if (!settings.hooks[hook].length) {
+          settings.hooks[hook] = undefined;
+        }
+      }
+    });
+  }
+  return settings;
+}
+
 class StateManager {
   /**
    * The mid is the state modules id and used to identify it.
    */
   mid = undefined;
 
-  constructor({ config, hooks, selectors }) {
+  constructor(_settings) {
     const self = this;
+
+    const settings = parseModuleSettings(_settings);
 
     const priv = {
       state: {},
-      config: {},
+      config: settings.config,
+      hooks: settings.hooks,
       actions: {},
       routes: new Map(),
       reducers: new Map(),
@@ -121,16 +152,9 @@ class StateManager {
 
     ManagerPrivateState.set(self, priv);
 
-    if (config) {
-      Object.assign(priv.config, config);
-    } else {
-      i += 1;
-      priv.config.mid = `state-module-${i}`;
-    }
-    this.mid = config.mid;
+    this.mid = settings.config.mid;
 
-    if (selectors) priv.selectors = Object.assign({}, selectors);
-    if (hooks) priv.hooks = Object.assign({}, hooks);
+    if (settings.selectors) priv.selectors = Object.assign({}, settings.selectors);
 
     priv.context = {
       get state() {
@@ -184,7 +208,7 @@ class StateManager {
     try {
       if (priv.hooks) {
         action = await handleAsyncActionHook('before', priv, action);
-        if (!action) return;
+        if (action === null) return;
       }
       if (priv.reducers.has(action.type) || priv.routes.has(action.type)) {
         ({ stateChanged, changedValues } = await handleRouteAction(priv, action));
@@ -211,7 +235,11 @@ class StateManager {
   select = k => {
     const priv = ManagerPrivateState.get(this);
     if (typeof k === 'function') {
-      return k(priv.selectors)(priv.state);
+      return k(priv.state);
+    } else if (typeof priv.selectors[k] !== 'function') {
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+        priv.config.mid
+      } | Selector with ID ${k} does not exist but you tried to select it`);
     }
     return priv.selectors[k](priv.state);
   };
