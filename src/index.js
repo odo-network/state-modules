@@ -1,5 +1,5 @@
 // ? Consider implementing lightweight replacement of immer?
-import produce from 'immer';
+import produce from 'immuta';
 import handleNewStateModule from './build';
 import { MODULE_NAME } from './context';
 import diff from './diff';

@@ -1,7 +1,7 @@
 {
   "name": "state-modules",
   "description": "A lightweight immutable state management library",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "Braden R. Napier",
   "private": false,
   "license": "MIT",
@@ -21,7 +21,15 @@
     "type": "git",
     "url": "https://github.com/odo-network/state-modules/"
   },
-  "keywords": ["state", "redux", "manager", "async", "reducer", "hooks", "components"],
+  "keywords": [
+    "state",
+    "redux",
+    "manager",
+    "async",
+    "reducer",
+    "hooks",
+    "components"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.49",
     "@babel/core": "^7.0.0-beta.49",
@@ -49,7 +57,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.49",
-    "immer": "^1.3.0",
+    "immuta": "^0.6.0",
     "lodash": "^4.17.10",
     "to-redux-type": "^1.2.3"
   },
@@ -57,9 +65,16 @@
     "babel": false,
     "compileEnhancements": false,
     "verbose": true,
-    "files": ["tests/*.js"],
-    "sources": ["src/**/*.js", "!dist/*"],
-    "require": ["@babel/register"],
+    "files": [
+      "tests/*.js"
+    ],
+    "sources": [
+      "src/**/*.js",
+      "!dist/*"
+    ],
+    "require": [
+      "@babel/register"
+    ],
     "tap": true
   }
 }

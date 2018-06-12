@@ -1,4 +1,4 @@
-const subscriptions = new WeakMap();
+export const subscriptions = new WeakMap();
 
 /**
  * Each time a component subscribes to the state it will provide its

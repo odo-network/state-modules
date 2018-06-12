@@ -1,6 +1,6 @@
 // TODO: Remove lodash as dependency
 import _ from 'lodash';
-import produce from 'immer';
+import produce from 'immuta';
 import toSnakeCase from 'to-redux-type';
 import { MODULE_NAME, SAGA_LIFECYCLES } from './context';
 

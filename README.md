@@ -4,7 +4,7 @@
 
 State Modules is a lightweight immutable state management library inspired by the pattern provided when combining `redux`, `redux-saga`, and `redux-saga-process`. More details to come.
 
-> It currently depends on `immer`, `lodash`, and our internal `to-redux-type` libraries. We plan to remove the `lodash` dependency and may remove `immer` at some point as well.
+> It currently depends on [`immuta`](https://www.github.com/odo-network/immuta), `lodash`, and our internal `to-redux-type` libraries. We plan to remove the `lodash` dependency before production.
 
 ## Installation
 

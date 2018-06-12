@@ -1,17 +1,17 @@
-import _ from 'lodash';
+// Any quick tests that we want to run `yarn try`
 
-const ObjOne = {
-  one: {
-    two: 2,
-  },
-};
+function test() {
+  let t;
+  switch (1) {
+    case 1: {
+      [t] = [1];
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+  console.log(t);
+}
 
-const ObjTwo = {
-  one: {
-    one: 1,
-  },
-};
-
-_.mergeWith(ObjOne, ObjTwo, () => undefined);
-
-console.log(ObjOne);
+test();
