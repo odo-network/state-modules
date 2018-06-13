@@ -55,15 +55,6 @@ state.component({
   }
 });
 
-// state.actions
-//   .increment(5)
-//   .then(changedValues => {
-//     return state.actions.decrement(3);
-//   })
-//   .then(changedValues => {
-//     console.log(state.select("counterValue"));
-//   });
-
 export default state;
 ```
 
