@@ -42,7 +42,8 @@ state.component({
     counterValue: "counter.value"
   },
   actions: {
-    // state.actions[actionID](by: number | void) => { type: 'INCREMENT' | 'DECREMENT', by: void | number }
+    // state.actions[actionID](by: number | void) =>
+    //    { type: 'INCREMENT' | 'DECREMENT', by: void | number }
     increment: ["by"],
     decrement: ["by"]
   },
