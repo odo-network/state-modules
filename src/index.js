@@ -116,13 +116,6 @@ class StateManager {
     return subscribeToAction(priv, condition, once).subscribe(subscription);
   };
 
-  // /**
-  //  * Connect the State Module to some function using a higher-order function.
-  //  * Generally used with React to connect to components using react-state-modules
-  //  *
-  //  * @param {} withSelectors
-  //  * @param {} withDispatchers
-  //  */
   connect = (withSelectors, withDispatchers, onUpdate) => {
     const priv = ManagerPrivateState.get(this);
     const snapshot = {

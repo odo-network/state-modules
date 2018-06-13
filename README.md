@@ -4,8 +4,6 @@
 
 State Modules is a lightweight immutable state management library inspired by the pattern provided when combining `redux`, `redux-saga`, and `redux-saga-process`. More details to come.
 
-> It currently depends on [`immuta`](https://www.github.com/odo-network/immuta), `lodash`, and our internal `to-redux-type` libraries. We plan to remove the `lodash` dependency before production.
-
 ## Installation
 
 ```
@@ -28,56 +26,6 @@ import createState from "state-modules";
 
 ```javascript
 createState(config: StateManagerConfig): StateManager
-```
-
-### type `BeforeHookFunction`
-
-#### Summary
-
-Before hooks are executed before a dispatched actions is handled by the `StateManager`. If a hook returns a `null` value, the dispatch will be cancelled. If a new action is returned, the new action will be used. If it returned nothing (or undefined), the original action will be dispatched.
-
-#### Type Signature
-
-```javascript
-type BeforeHookFunction = (
-  action: StateDispatchedAction
-) => action | null | void;
-```
-
-### type `ChangeHookFunction`
-
-#### Summary
-
-Change hooks are executed only when the state has been changed in some way.
-
-#### Type Signature
-
-```javascript
-type ChangeHookFunction = (
-  action: StateDispatchedAction,
-  prevState: State,
-  changedValues: Array<StatePath>
-) => any;
-```
-
-### type `AfterHookFunction`
-
-#### Type Signature
-
-```javascript
-type AfterHookFunction = (
-  action: StateDispatchedAction,
-  prevState: State,
-  changedValues: Array<StatePath>
-) => any;
-```
-
-### type `ErrorHookFunction`
-
-#### Type Signature
-
-```javascript
-type ErrorHookFunction = (action: StateDispatchedAction, error: Error) => any;
 ```
 
 ### type `StateManagerConfig`
@@ -121,23 +69,89 @@ type StateManagerConfig = {|
 }
 ```
 
+### type `BeforeHookFunction`
+
+#### Summary
+
+Before hooks are executed before a dispatched actions is handled by the `StateManager`. If a hook returns a `null` value, the dispatch will be cancelled. If a new action is returned, the new action will be used. If it returned nothing (or undefined), the original action will be dispatched.
+
+#### Type Signature
+
+```javascript
+type BeforeHookFunction = (
+  action: StateDispatchedAction
+) => action | null | void;
+```
+
+### type `ChangeHookFunction`
+
+#### Summary
+
+Change hooks are executed only when the state has been changed in some way.
+
+#### Type Signature
+
+```javascript
+type ChangeHookFunction = (
+  action: StateDispatchedAction,
+  prevState: State,
+  changedValues: Array<StatePath>
+) => any;
+```
+
+### type `AfterHookFunction`
+
+#### Summary
+
+After hooks are executed after the dispatch has been processed and the state reducers have been called. There is no guarantee that the state effects have been completely resolved at this point.
+
+#### Type Signature
+
+```javascript
+type AfterHookFunction = (
+  action: StateDispatchedAction,
+  prevState: State,
+  changedValues: Array<StatePath>
+) => any;
+```
+
+### type `ErrorHookFunction`
+
+#### Summary
+
+Error hooks are executed if an error occurs during the processing of a dispatch.
+
+#### Type Signature
+
+```javascript
+type ErrorHookFunction = (action: StateDispatchedAction, error: Error) => any;
+```
+
 ### interface `StateManager`
 
 #### Type Signature
 
 ```javascript
 interface StateManager {
-  get modules(): Array<StateComponentID>;
+  get components(): Array<State$ComponentID>;
   get actions(): StateActionDispatchers;
-  create(...modules: Array<StateComponentConfig>): StateManager;
+
+  select<R>(selector: string | string[] | (state: State) => R):  R
+
+  component(...components: Array<State$ComponentConfig>): State$Manager;
+
+  dispatch(action: State$DispatchedAction): Promise<void | State$ChangedPaths>;
+
+  subscribeToSelector(): State$Subscription
+
+  subscribeToAction(): State$Subscription;
+
   connect(
     withState: StateConnectState,
     withDispatchers: StateConnectDispatchers
   ): (component: React.Component<*>) => React.Component<*>;
-  dispatch(action: {
-    +type: string,
-    [key: string]: any
-  }): Promise<void | StateNewState>;
+
+  resolve(): Promise<void>
 }
 ```
 
