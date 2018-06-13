@@ -42,6 +42,7 @@ state.component({
     counterValue: "counter.value"
   },
   actions: {
+    // state.actions[actionID](by: number | void) => { type: 'INCREMENT' | 'DECREMENT', by: void | number }
     increment: ["by"],
     decrement: ["by"]
   },
@@ -69,8 +70,8 @@ function MyComponent({ counterValue, counterIncrement, counterDecrement }) {
   return (
     <div>
       <div>Value: {counterValue}</div>
-      <button onClick={counterIncrement}>Increment</button>
-      <button onClick={counterDecrement}>Decrement</button>
+      <button onClick={() => counterIncrement(1)}>Increment</button>
+      <button onClick={() => counterDecrement(1)}>Decrement</button>
     </div>
   );
 }
