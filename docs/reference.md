@@ -1,4 +1,4 @@
-## Reference
+# Reference Documentation
 
 ### function `createState` (default export)
 
