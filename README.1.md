@@ -30,56 +30,6 @@ import createState from "state-modules";
 createState(config: StateManagerConfig): StateManager
 ```
 
-### type `BeforeHookFunction`
-
-#### Summary
-
-Before hooks are executed before a dispatched actions is handled by the `StateManager`. If a hook returns a `null` value, the dispatch will be cancelled. If a new action is returned, the new action will be used. If it returned nothing (or undefined), the original action will be dispatched.
-
-#### Type Signature
-
-```javascript
-type BeforeHookFunction = (
-  action: StateDispatchedAction
-) => action | null | void;
-```
-
-### type `ChangeHookFunction`
-
-#### Summary
-
-Change hooks are executed only when the state has been changed in some way.
-
-#### Type Signature
-
-```javascript
-type ChangeHookFunction = (
-  action: StateDispatchedAction,
-  prevState: State,
-  changedValues: Array<StatePath>
-) => any;
-```
-
-### type `AfterHookFunction`
-
-#### Type Signature
-
-```javascript
-type AfterHookFunction = (
-  action: StateDispatchedAction,
-  prevState: State,
-  changedValues: Array<StatePath>
-) => any;
-```
-
-### type `ErrorHookFunction`
-
-#### Type Signature
-
-```javascript
-type ErrorHookFunction = (action: StateDispatchedAction, error: Error) => any;
-```
-
 ### type `StateManagerConfig`
 
 #### Type Signature
@@ -108,15 +58,19 @@ type StateManagerConfig = {|
   config: { mid: 'my-module' },
   // Hooks allow simple hooking into the lifecycle of the state
   hooks: {
-     // Before action is dispatched, may return an action with new properties
     before: [action => console.group('DISPATCHING: ', action)],
-    // Whenever the state changes, gets previous and next as well as an object
-    // with only the changed values.
-    change: [(action, prevState, changedValues) => console.log('State Changed: ', changedValues)],
-    // After the dispatch has occurred.
-    after: [() => console.groupEnd()],
-    // Any error that occurs within the realm of the dispatch
+    change: [
+      (prevState, nextState, changedValues) =>
+        console.log(
+          'State Changed from: \n',
+          prevState,
+          '\n --> to --> \n',
+          nextState, '\n',
+          changedValues
+        ),
+    ],
     error: [e => console.error('Error: ', e)],
+    after: [() => console.groupEnd()],
   },
 }
 ```

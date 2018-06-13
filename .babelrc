@@ -1,35 +1,36 @@
 {
-  "presets": [
-    "@babel/preset-flow",
+  presets: [
+    '@babel/preset-flow',
     [
-      "@babel/preset-env",
+      '@babel/preset-env',
       {
-        "cacheDirectory": true,
-        "shippedProposals": true,
-        "useBuiltIns": "usage",
-        "targets": {
-          "node": true,
-          "browsers": ["last 2 versions"]
-        }
-      }
+        cacheDirectory: true,
+        shippedProposals: true,
+        useBuiltIns: 'usage',
+        targets: {
+          node: true,
+          browsers: ['last 2 versions'],
+        },
+      },
     ],
     [
-      "@babel/preset-stage-0",
+      '@babel/preset-stage-0',
       {
-        "useBuiltIns": true,
-        "decoratorsLegacy": true
-      }
-    ]
+        useBuiltIns: true,
+        decoratorsLegacy: true,
+      },
+    ],
   ],
-  "plugins": [
+  plugins: [
     [
-      "@babel/plugin-transform-runtime",
+      '@babel/plugin-transform-runtime',
       {
-        "regenerator": true,
-        "polyfill": true
-      }
+        regenerator: true,
+        polyfill: true,
+      },
     ],
-    "lodash",
-    "@babel/plugin-proposal-optional-chaining"
-  ]
+    'lodash',
+    '@babel/plugin-proposal-optional-chaining',
+    'dynamic-import-node',
+  ],
 }
