@@ -2,6 +2,10 @@
 
 State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and `immuta` (which in-turn is inspired by `immer`).
 
+State Modules use ES6 Proxies to capture mutations performed against a "draft state". If changes occur while reducing a dispatched action, updates are dispatched directly to only those components which have subscribed to changes for the given values.
+
+> **Note:** While reducers "appear" to be mutating the state, they are actually mutating an ES6 Proxy. References are then changed based on those mutations so that `nextState !== state` if any values change at any depth within the state.
+
 ## Installation
 
 ```
@@ -11,6 +15,11 @@ yarn add state-modules
 ## Flow Coverage
 
 When complete, this library will provide 100% Flow Coverage
+
+## Documentation
+
+- [**Reference Documentation**](./docs/reference.md)
+- [**Examples**](./docs/examples.md)
 
 ## Simple Examples
 
@@ -85,8 +94,3 @@ export default state.connect(
   })
 )(MyComponent);
 ```
-
-## Documentation
-
-- [**Reference Documentation**](./docs/reference.md)
-- [**Examples**](./docs/examples.md)
