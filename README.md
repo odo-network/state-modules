@@ -1,8 +1,6 @@
 # State Modules
 
-## UNFINISHED
-
-State Modules is a lightweight immutable state management library inspired by the pattern provided when combining `redux`, `redux-saga`, and `redux-saga-process`. More details to come.
+State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and `immuta` (which in-turn is inspired by `immer`).
 
 ## Installation
 
@@ -13,6 +11,80 @@ yarn add state-modules
 ## Flow Coverage
 
 When complete, this library will provide 100% Flow Coverage
+
+## Simple Examples
+
+### State Manager
+
+```javascript
+// state.js
+import createState from "state-modules";
+
+const state = createState();
+
+state.component({
+  config: { cid: "counter" },
+  state: {
+    counter: {
+      value: 1
+    }
+  },
+  selectors: {
+    counterValue: "counter.value"
+  },
+  actions: {
+    increment: ["by"],
+    decrement: ["by"]
+  },
+  reducers: {
+    INCREMENT({ by = 1 }, draft) {
+      draft.counter.value += by;
+    },
+    DECREMENT({ by = 1 }, draft) {
+      draft.counter.value -= by;
+    }
+  }
+});
+
+// state.actions
+//   .increment(5)
+//   .then(changedValues => {
+//     return state.actions.decrement(3);
+//   })
+//   .then(changedValues => {
+//     console.log(state.select("counterValue"));
+//   });
+
+export default state;
+```
+
+### React Connector
+
+```javascript
+// component.jsx
+import * as React from "react";
+import state from "./state";
+
+function MyComponent({ counterValue, counterIncrement, counterDecrement }) {
+  return (
+    <div>
+      <div>Value: {counterValue}</div>
+      <button onClick={counterIncrement}>Increment</button>
+      <button onClick={counterDecrement}>Decrement</button>
+    </div>
+  );
+}
+
+export default state.connect(
+  selectors => ({
+    counterValue: selectors.counterValue
+  }),
+  actions => ({
+    counterIncrement: actions.increment,
+    counterDecrement: actions.decrement
+  })
+)(MyComponent);
+```
 
 ## Documentation
 
