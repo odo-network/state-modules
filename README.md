@@ -133,6 +133,8 @@ type ErrorHookFunction = (action: StateDispatchedAction, error: Error) => any;
 
 ```javascript
 interface StateManager {
+  mid: string;
+
   get components(): Array<State$ComponentID>;
   get actions(): StateActionDispatchers;
 
@@ -162,10 +164,19 @@ interface StateManager {
 ```javascript
 type StateComponentConfig = {
   config: {|
-    cid: StateComponentID,
-    prefix: StateActionPrefix,
-    loadsOnAction: StateActionType
-  |}
+    cid: State$ComponentID,
+    prefix?: string,
+    loadsOnAction?: State$ActionSelector,
+    scopeID?: string
+  |},
+  scope?: () => Promise<State$ComponentScope>,
+  state?: State$StateFragment,
+  actions?: State$ActionCreators,
+  reducers?: State$Reducers,
+  routes?: State$EffectRoutes,
+  effects?: State$Effects,
+  selectors?: State$Selectors,
+  hooks?: State$ComponentHooks
 };
 ```
 
