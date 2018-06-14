@@ -17,6 +17,7 @@ function buildPrivateState(config, hooks, selectors, dispatch) {
     state: {},
     hooks,
     actions: {},
+    helpers: Object.create(null),
     routes: new Map(),
     reducers: new Map(),
     schema: new WeakMap(),
@@ -25,9 +26,15 @@ function buildPrivateState(config, hooks, selectors, dispatch) {
       creates: new Set(),
       resolves: new Set(),
     },
+    // added dynamically when used
+    // subscribers: new Map(),
+    // selectors: new Map(),
   };
   priv.context = {
     config,
+    get components() {
+      return priv.components.keys();
+    },
     get state() {
       return priv.state;
     },
@@ -39,6 +46,9 @@ function buildPrivateState(config, hooks, selectors, dispatch) {
     },
     get scope() {
       return priv.scope;
+    },
+    get helpers() {
+      return priv.helpers;
     },
     select: action.select.bind(priv),
     dispatch,
@@ -93,9 +103,9 @@ class StateManager {
    *
    * @param {string | (selectors) => selector} key Which selector should be called
    */
-  select = k => {
+  select = (k, props) => {
     const priv = ManagerPrivateState.get(this);
-    return priv.context.select(k);
+    return priv.context.select(k, props);
   };
 
   subscribeToSelector = (_selector, subscription, once) => {
@@ -133,7 +143,11 @@ class StateManager {
     } else {
       // when the connector directly selects the state we can not optimize
       // the subscription and must provide the selected state every time
-      selectors = withSelectors(priv.selectors, priv.state);
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+        priv.config.mid
+      } | Second state selection argument (state) is not yet supported`);
+      // selectors = withSelectors(priv.selectors, priv.state);
+
       // TODO | Finish
     }
     return subscription;

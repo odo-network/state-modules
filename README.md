@@ -31,28 +31,29 @@ import createState from "state-modules";
 
 const state = createState();
 
+const created = Date.now();
+
 state.component({
   config: { cid: "counter" },
   state: {
-    counter: {
-      value: 1
-    }
+    counter: { value: 0, created, updated: created }
   },
   selectors: {
-    counterValue: "counter.value"
+    counterValue: "counter.value",
+    counter: "counter"
   },
   actions: {
-    // state.actions[actionID](by: number | void) =>
-    //    state.dispatch({ type: 'INCREMENT' | 'DECREMENT', by: void | number })
     increment: ["by"],
     decrement: ["by"]
   },
   reducers: {
     INCREMENT({ by = 1 }, draft) {
       draft.counter.value += by;
+      draft.counter.updated = Date.now();
     },
     DECREMENT({ by = 1 }, draft) {
       draft.counter.value -= by;
+      draft.counter.updated = Date.now();
     }
   }
 });

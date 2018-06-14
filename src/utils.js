@@ -48,7 +48,7 @@ export function merge(obj, withObj, priv, module) {
   } else {
     Object.keys(withObj).forEach(key => {
       const value = withObj[key];
-      if (obj[key]) {
+      if (obj[key] || obj[key] === null || typeof obj[key] === 'boolean' || typeof obj[key] === 'number') {
         if (
           typeof obj[key] !== 'object' ||
           typeof value !== 'object' ||
@@ -66,7 +66,9 @@ export function merge(obj, withObj, priv, module) {
 }
 
 export function buildSelectors(priv, component, selectors, _ancestors = []) {
-  if (Array.isArray(selectors) || typeof selectors === 'string') {
+  if (typeof selectors === 'function') {
+    return selectors;
+  } else if (Array.isArray(selectors) || typeof selectors === 'string') {
     const value = Array.isArray(selectors) ? selectors.join('.') : selectors;
     _ancestors.forEach(ancestor => ancestor.add(value));
     return value;
@@ -91,7 +93,6 @@ export function buildSelectors(priv, component, selectors, _ancestors = []) {
     selector[key] = buildSelectors(priv, component, selector[key], ancestors);
   });
   selector[SELECTOR_CHILDREN] = children;
-  // selector[SELECTOR_PATH] =
   return selector;
 }
 
@@ -110,8 +111,13 @@ export function getSelectorSubscription(snapshot, onUpdate, selectors) {
  * @param {*} state
  * @param {*} selected
  */
-export function getSelectedState(state, selected) {
-  if (typeof selected === 'string') {
+export function getSelectedState(state, selected, props) {
+  if (!selected) {
+    throw new Error(`[${MODULE_NAME}] | ERROR | getSelectedState | Received falsey value (${String(selected)}), expects string, array, function, or plain object.`);
+  } else if (typeof selected === 'function') {
+    const value = selected(props);
+    return getSelectedState(state, value, props);
+  } else if (typeof selected === 'string') {
     return selected.split('.').reduce((p, c) => (p ? p[c] : p), state);
   } else if (Array.isArray(selected)) {
     return selected.reduce((p, c) => (p ? p[c] : p), state);
@@ -151,6 +157,10 @@ export function subscribeToAction(priv, condition, once = false) {
 
     return cancel;
   });
+}
+
+export function hasProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
 function unsubscribeFromAction(priv, condition, handler) {

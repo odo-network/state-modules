@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.0.0-beta.49",
-    "immuta": "^0.6.0",
+    "immuta": "^1.0.0",
     "lodash": "^4.17.10",
     "to-redux-type": "^1.2.3"
   },

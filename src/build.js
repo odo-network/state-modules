@@ -91,6 +91,17 @@ function handleBuildReducers(priv, component) {
   });
 }
 
+function handleBuildHelpers(priv, component) {
+  Object.keys(component.helpers).forEach(helperID => {
+    if (utils.hasProperty(priv.helpers, helperID)) {
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
+        component.config.cid
+      } | Defined routes but no matching effects exist.`);
+    }
+    priv.helpers[helperID] = component.helpers[helperID];
+  });
+}
+
 function handleBuildRoutes(priv, component) {
   if (!component.effects && Object.keys(component.routes).length > 0) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
@@ -124,6 +135,9 @@ function loadSynchronousComponentProperties(priv, component) {
   }
   if (component.reducers) {
     handleBuildReducers(priv, component);
+  }
+  if (component.helpers) {
+    handleBuildHelpers(priv, component);
   }
 }
 

@@ -1,11 +1,11 @@
-import { MODULE_NAME } from './context';
+import { MODULE_NAME, emptyFrozenObject } from './context';
 import { getSelectedState } from './utils';
 import * as handle from './handlers';
 
-export function select(k) {
+export function select(k, props = emptyFrozenObject) {
   let path = k;
   if (typeof k === 'function') {
-    return k(this.state);
+    return k(this.state, props);
   }
 
   if (!this.selectors) {
@@ -21,7 +21,7 @@ export function select(k) {
   }
 
   const selected = path.reduce((p, c) => p[c], this.selectors);
-  return getSelectedState(this.state, selected);
+  return getSelectedState(this.state, selected, props);
 }
 
 function iterateActionSubscribers(action, subscribers, promises = []) {
