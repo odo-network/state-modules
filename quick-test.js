@@ -1,10 +1,93 @@
+// let i = 0;
+
+// // eslint-disable-next-line
+// function noop() {}
+
+// class Subscription {
+//   constructor(cb, _subscription, args) {
+//     const subscription = Object.assign(
+//       {
+//         start: noop,
+//         next: noop,
+//         complete: noop,
+//       },
+//       _subscription,
+//     );
+//     Object.assign(this, cb.call(this, subscription, ...args));
+//   }
+// }
+
+// class Subscriber {
+//   #cb;
+//   constructor(cb) {
+//     this.#cb = cb;
+//   }
+//   subscribe = (subscription, ...args) => new Subscription(this.#cb, subscription, args);
+// }
+
+// function SubscriberFunction(observer, ...args) {
+//   console.log('Subscription Starts! ', observer, args);
+
+//   const intervalID = setInterval(() => {
+//     console.log('Next! ', this);
+//     observer.next(i++);
+//   }, 10000);
+
+//   return {
+//     setProps(props) {
+//       console.log('Setting Props: ', props);
+//     },
+//     cancel() {
+//       console.log('Cancel!');
+//       clearInterval(intervalID);
+//     },
+//   };
+// }
+
+// function startSubscription() {
+//   return new Subscriber(SubscriberFunction);
+// }
+
+// const subscriber = startSubscription();
+
+// console.log(subscriber);
+
+// const subscription = subscriber.subscribe(
+//   {
+//     next(val) {
+//       console.log('Next: ', val);
+//     },
+//   },
+//   1,
+//   2,
+//   3,
+// );
+
+// subscription.setProps({ counterID: 'test' });
+// console.log(subscription);
+
 /* @flow */
 // Any quick tests that we want to run `yarn try`
 import { performance } from 'perf_hooks';
 import createState from './src/index';
+// import connectReact from './react-state-modules/subscribe';
+
+function simpleConnector(subscriber, actions) {
+  return WrappedComponent => {
+    const subscription = actions.subscribe({
+      next(val) {
+        console.log('Simple Connect NEXT: ', val);
+      },
+    });
+    return {
+      ...WrappedComponent,
+      setProps: subscription.setSelectorProps,
+    };
+  };
+}
 
 const state = createState({
-  config: { mid: 'my-module' },
+  config: { mid: 'my-module', connector: simpleConnector },
   // Hooks allow simple hooking into the lifecycle of the state
   hooks: {
     // Before action is dispatched, may return an action with new properties
@@ -21,7 +104,7 @@ const state = createState({
 
 const created = Date.now();
 
-state.component({
+state.create({
   config: { cid: 'counter' },
   state: {
     shared: { value: 0, created, updated: created },
@@ -40,7 +123,6 @@ state.component({
   },
   helpers: {
     createCounter(draft, counterID, initialValue = 0) {
-      console.log('Create: ', counterID);
       const now = Date.now();
       draft.counters[counterID] = {
         value: initialValue,
@@ -54,6 +136,7 @@ state.component({
       this.helpers.createCounter(draft, counterID, initialValue);
     },
     INCREMENT({ by = 1, counterID = 'default' }, draft) {
+      console.log(this.state);
       if (!draft.counters[counterID]) {
         this.helpers.createCounter(draft, counterID);
       }
@@ -87,100 +170,130 @@ state.component({
   },
 });
 
+const connector = state.connect();
+
+// const reactConnector = state.createConnector(connectReact);
+
+const Component = {
+  props: {
+    counterID: 'default',
+  },
+};
+
+const connected = connector(
+  selectors => ({
+    // total: selectors.counterTotal,
+    counterByID: selectors.counterByID,
+  }),
+  actions => actions,
+  (props, state) => {
+    console.log('Handle Merge!');
+  },
+)(Component);
+
+console.log('Connected: ', connected);
+
+connected.setProps({ counterID: 'test' });
+
 state.actions
   .increment(2, 'test')
   .then(() => {
     console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+
     return state.actions.decrement(1, 'test');
   })
   .then(() => {
     console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+    connected.setProps({ counterID: 'default' });
+    return state.actions.increment(1);
   })
   .catch(e => {
     console.error('Error: ', e);
   });
 
-// const state = createState();
+// // console.log('Connected: ', connected);
 
-// // Create a State Component to add to our module
-// state.component({
-//   config: { cid: 'my-first-component' },
+// // const state = createState();
 
-//   // initial state to merge into module (no collisions allowed)
-//   state: {
-//     data: {
-//       value: 1,
-//     },
-//   },
-//   // selectors are used to capture common data structures and values
-//   // of our state to be used
-//   selectors: {
-//     value: {
-//       value: 'data.value',
-//       num: 'data.value',
-//       another: 'data.value',
-//     },
-//   },
-//   // actions to dispatch when called.
-//   actions: {
-//     // state.actions.sweet(1, 2) --> state.dispatch({ type: 'SWEET', paramOne: 1, paramTwo: 2 })
-//     sweet: ['paramOne', 'paramTwo'],
-//   },
-//   reducers: {
-//     SWEET: (action, draftState) => {
-//       // data is immutable - we are actually mutating a proxy (@see immer)
-//       draftState.data.value = draftState.data.value + action.paramOne + action.paramTwo;
-//     },
-//   },
-// });
+// // // Create a State Component to add to our module
+// // state.component({
+// //   config: { cid: 'my-first-component' },
 
-// const connected = state.connect(
-//   selectors => ({
-//     value: selectors.value,
-//     another: selectors.value,
-//   }),
-//   actions => ({
-//     sweet: actions.sweet,
-//   }),
-//   updates => {
-//     console.log('CONNECTED Updates!');
-//   },
-// );
+// //   // initial state to merge into module (no collisions allowed)
+// //   state: {
+// //     data: {
+// //       value: 1,
+// //     },
+// //   },
+// //   // selectors are used to capture common data structures and values
+// //   // of our state to be used
+// //   selectors: {
+// //     value: {
+// //       value: 'data.value',
+// //       num: 'data.value',
+// //       another: 'data.value',
+// //     },
+// //   },
+// //   // actions to dispatch when called.
+// //   actions: {
+// //     // state.actions.sweet(1, 2) --> state.dispatch({ type: 'SWEET', paramOne: 1, paramTwo: 2 })
+// //     sweet: ['paramOne', 'paramTwo'],
+// //   },
+// //   reducers: {
+// //     SWEET: (action, draftState) => {
+// //       // data is immutable - we are actually mutating a proxy (@see immer)
+// //       draftState.data.value = draftState.data.value + action.paramOne + action.paramTwo;
+// //     },
+// //   },
+// // });
 
-// let start;
+// // const connected = state.connect(
+// //   selectors => ({
+// //     value: selectors.value,
+// //     another: selectors.value,
+// //   }),
+// //   actions => ({
+// //     sweet: actions.sweet,
+// //   }),
+// //   updates => {
+// //     console.log('CONNECTED Updates!');
+// //   },
+// // );
 
-// // State Components can be split up - they will be merged and validated with errors thrown if there are
-// // any conflicts.
-// state
-//   .component({
-//     config: { cid: 'my-first-component-async', loadsOnAction: 'SWEET' },
-//     scope: () => import('./testimport'),
-//     actions: {
-//       // --> { type: 'SWEET_ASYNC', paramOne: arguments[0], paramTwo: arguments[1] }
-//       sweetAsync: ['paramOne', 'paramTwo'],
-//     },
-//     routes: {
-//       sweetAsync: 'handleSweetAsync',
-//     },
-//     effects: {
-//       async handleSweetAsync(action) {
-//         // not technically asynchronous in this case
-//         await this.actions.sweet(action.paramOne, action.paramTwo, { test: 'this' });
-//       },
-//     },
-//   })
-//   .resolve()
-//   .then(() => {
-//     start = performance.now();
-//     return state.actions.sweet(1, 2);
-//   })
-//   .then(changedValues =>
-//     console.log('Selected Value: ', state.select('value'), '\nChanged Values: ', changedValues))
-//   .then(() => state.actions.sweetAsync(4, 5))
-//   .then(() => {
-//     console.log('Selected Value: ', state.select('value.value'));
-//     console.log(performance.now() - start);
-//   })
-//   .catch(e => {
-//     console.error('Fail: ', e);
-//   });
+// // let start;
+
+// // // State Components can be split up - they will be merged and validated with errors thrown if there are
+// // // any conflicts.
+// // state
+// //   .component({
+// //     config: { cid: 'my-first-component-async', loadsOnAction: 'SWEET' },
+// //     scope: () => import('./testimport'),
+// //     actions: {
+// //       // --> { type: 'SWEET_ASYNC', paramOne: arguments[0], paramTwo: arguments[1] }
+// //       sweetAsync: ['paramOne', 'paramTwo'],
+// //     },
+// //     routes: {
+// //       sweetAsync: 'handleSweetAsync',
+// //     },
+// //     effects: {
+// //       async handleSweetAsync(action) {
+// //         // not technically asynchronous in this case
+// //         await this.actions.sweet(action.paramOne, action.paramTwo, { test: 'this' });
+// //       },
+// //     },
+// //   })
+// //   .resolve()
+// //   .then(() => {
+// //     start = performance.now();
+// //     return state.actions.sweet(1, 2);
+// //   })
+// //   .then(changedValues =>
+// //     console.log('Selected Value: ', state.select('value'), '\nChanged Values: ', changedValues))
+// //   .then(() => state.actions.sweetAsync(4, 5))
+// //   .then(() => {
+// //     console.log('Selected Value: ', state.select('value.value'));
+// //     console.log(performance.now() - start);
+// //   })
+// //   .catch(e => {
+// //     console.error('Fail: ', e);
+// //   });

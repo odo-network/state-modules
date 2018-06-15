@@ -1,8 +1,6 @@
-// TODO: Remove lodash as dependency
-
 import mutate from 'immuta';
 import toSnakeCase from 'to-redux-type';
-import { MODULE_NAME, SELECTOR_CHILDREN } from './context';
+import { MODULE_NAME, STATE_SELECTOR } from './context';
 import * as utils from './utils';
 
 function handleBoundAction(...fnargs) {
@@ -21,27 +19,27 @@ function handleBoundAction(...fnargs) {
   return this.dispatch(createdAction);
 }
 
-function handleBuildState(priv, component, state) {
+function handleBuildState(descriptor, component, state) {
   if (!state) {
     if (process.env.NODE_ENV !== 'production') {
       console.warn(`[${MODULE_NAME}] | WARN | handleBuildState received empty state`);
     }
     return;
   }
-  priv.state = mutate(priv.state, draftState => {
-    utils.merge(draftState, state, priv, component);
+  descriptor.state = mutate(descriptor.state, draftState => {
+    utils.merge(draftState, state, descriptor, component);
   });
 }
 
-function handleBuildActions(priv, component, actions, _obj) {
-  const obj = _obj || priv.actions;
+function handleBuildActions(descriptor, component, actions, _obj) {
+  const obj = _obj || descriptor.actions;
   Object.keys(actions).forEach(_type => {
     let args = actions[_type];
     if (!Array.isArray(args) && typeof args === 'object') {
       obj[_type] = obj[_type] || {};
-      return handleBuildActions(priv, component, args, obj[_type]);
+      return handleBuildActions(descriptor, component, args, obj[_type]);
     } else if (obj[_type]) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | component action ${
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action ${
         component.config.cid
       }.${_type} already exists on the module.`);
     } else if (args === null) {
@@ -52,8 +50,8 @@ function handleBuildActions(priv, component, actions, _obj) {
       Object.assign(action, args.shift());
     }
     obj[_type] = handleBoundAction.bind({
-      dispatch: priv.context.dispatch,
-      mid: priv.config.mid,
+      dispatch: descriptor.context.dispatch,
+      mid: descriptor.config.mid,
       cid: component.config.cid,
       action,
       args,
@@ -61,152 +59,162 @@ function handleBuildActions(priv, component, actions, _obj) {
   });
 }
 
-function handleBuildSelectors(priv, component) {
-  if (!priv.selectors) {
-    priv.selectors = {};
+function handleBuildSelectors(descriptor, component) {
+  if (!descriptor.selectors) {
+    descriptor.selectors = {
+      [STATE_SELECTOR]: {
+        children: new Set(),
+      },
+    };
   }
+
+  const ancestors = new Set().add(descriptor.selectors[STATE_SELECTOR]);
+
   Object.keys(component.selectors).forEach(selectorID => {
-    if (priv.selectors[selectorID]) {
+    if (descriptor.selectors[selectorID]) {
       throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-        priv.config.mid
+        descriptor.config.mid
       } | Selector ID ${selectorID} was already added to the state module.`);
     }
-    const children = new Set();
-    const ancestors = [children];
-    const selector = utils.buildSelectors(priv, component, component.selectors[selectorID], ancestors);
-    if (typeof selector === 'object') {
-      selector[SELECTOR_CHILDREN] = children;
-    }
-    priv.selectors[selectorID] = selector;
+    descriptor.selectors[selectorID] = utils.buildSelectors(
+      descriptor,
+      component,
+      component.selectors[selectorID],
+      ancestors,
+    );
   });
+
+  console.log('Selectors: ', descriptor.selectors[STATE_SELECTOR]);
 }
 
-function handleBuildReducers(priv, component) {
+function handleBuildReducers(descriptor, component) {
   // * Each key in schema indicates a piece of state we need to reduce.
   Object.keys(component.reducers).forEach(_type => {
     const type = `${component.config.prefix}${toSnakeCase(_type)}`;
-    const set = priv.reducers.get(type) || new Set();
+    const set = descriptor.reducers.get(type) || new Set();
     set.add(component.reducers[_type]);
-    priv.reducers.set(type, set);
+    descriptor.reducers.set(type, set);
   });
 }
 
-function handleBuildHelpers(priv, component) {
+function handleBuildHelpers(descriptor, component) {
   Object.keys(component.helpers).forEach(helperID => {
-    if (utils.hasProperty(priv.helpers, helperID)) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
+    if (utils.hasProperty(descriptor.helpers, helperID)) {
+      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
         component.config.cid
       } | Defined routes but no matching effects exist.`);
     }
-    priv.helpers[helperID] = component.helpers[helperID];
+    descriptor.helpers[helperID] = component.helpers[helperID];
   });
 }
 
-function handleBuildRoutes(priv, component) {
+function handleBuildRoutes(descriptor, component) {
   if (!component.effects && Object.keys(component.routes).length > 0) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
+    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
       component.config.cid
     } | Defined routes but no matching effects exist.`);
   }
   /* Routes define all the sagas to execute when a given type executes */
-  Object.keys(component.routes).forEach(_type => {
-    const type = `${component.config.prefix}${toSnakeCase(_type)}`;
-    const set = priv.routes.get(type) || new Set();
-    const effect = component.effects[component.routes[_type]];
-    if (typeof effect !== 'function') {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
-        component.config.cid
-      } | Route ${_type} defined in routes but no matching effect exists.`);
+  for (const _type in component.routes) {
+    if (Object.prototype.hasOwnProperty.call(component.routes, _type)) {
+      const type = `${component.config.prefix}${toSnakeCase(_type)}`;
+      const set = descriptor.routes.get(type) || new Set();
+      const effect = component.effects[component.routes[_type]];
+      if (typeof effect !== 'function') {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
+          component.config.cid
+        } | Route ${_type} defined in routes but no matching effect exists.`);
+      }
+      set.add(effect);
+      descriptor.routes.set(type, set);
     }
-    set.add(effect);
-    priv.routes.set(type, set);
-  });
+  }
 }
 
-function loadSynchronousComponentProperties(priv, component) {
+function loadSynchronousComponentProperties(descriptor, component) {
   if (component.state) {
-    handleBuildState(priv, component, component.state);
+    handleBuildState(descriptor, component, component.state);
   }
   if (component.actions) {
-    handleBuildActions(priv, component, component.actions);
+    handleBuildActions(descriptor, component, component.actions);
   }
   if (component.selectors) {
-    handleBuildSelectors(priv, component);
+    handleBuildSelectors(descriptor, component);
   }
   if (component.reducers) {
-    handleBuildReducers(priv, component);
+    handleBuildReducers(descriptor, component);
   }
   if (component.helpers) {
-    handleBuildHelpers(priv, component);
+    handleBuildHelpers(descriptor, component);
   }
 }
 
-function loadAsynchronousComponentProperties(priv, component) {
+function loadAsynchronousComponentProperties(descriptor, component) {
   if (component.routes) {
-    handleBuildRoutes(priv, component);
+    handleBuildRoutes(descriptor, component);
   }
   if (component.hooks && component.hooks.loads) {
     component.hooks.loads();
   }
 }
 
-async function loadComponentScope(priv, component) {
+async function loadComponentScope(descriptor, component) {
   if (!component.scope) return;
-  if (!priv.scope) {
-    priv.scope = {};
+  if (!descriptor.scope) {
+    descriptor.scope = {};
   }
   const scope = await component.scope();
-  priv.scope[scope.id || component.config.scopeID || component.config.cid] = scope;
+  descriptor.scope[scope.id || component.config.scopeID || component.config.cid] = scope;
 }
 
-async function loadComponentScopeAndAsynchronousProperties(priv, component) {
+async function loadComponentScopeAndAsynchronousProperties(descriptor, component) {
   if (component.scope) {
-    await loadComponentScope(priv, component);
+    await loadComponentScope(descriptor, component);
   }
-  loadAsynchronousComponentProperties(priv, component);
+  loadAsynchronousComponentProperties(descriptor, component);
 }
 
-export default async function handleNewStateModule(priv, _component) {
+export default async function handleNewStateModule(descriptor, _component) {
   let component = _component;
   if (typeof component === 'function') {
     // TODO : Need to pass this function a configuration for the module.
-    component = component(priv);
+    component = component(descriptor);
   }
 
   if (typeof component !== 'object') {
     return;
   } else if (typeof component.config !== 'object' || !component.config.cid) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      priv.config.mid
+      descriptor.config.mid
     } | Component didn't have a config or Component.config.cid was not defined`);
   }
 
-  if (priv.components.has(component.config.cid)) {
+  if (descriptor.components.has(component.config.cid)) {
     /* Only allow each cid to be registered once - using symbols for modules may be best? */
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Component ${
+    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
       component.config.cid
     } has already been defined and may not be defined again`);
   }
 
   component.config.prefix = component.config.prefix ? `${toSnakeCase(component.config.prefix)}_` : '';
 
-  priv.components.set(component.config.cid, component);
+  descriptor.components.set(component.config.cid, component);
 
-  loadSynchronousComponentProperties(priv, component);
+  loadSynchronousComponentProperties(descriptor, component);
 
   if (component.config.loadsOnAction) {
     // defer handling of this module until a specific type is imported - when this occurs we will still process
     // most values but will defer any async route handling for the component (and scope import) until the given
     // action is met
-    utils.subscribeToAction(priv, component.config.loadsOnAction, true).subscribe({
+    utils.subscribeToAction(descriptor, component.config.loadsOnAction, true).subscribe({
       next() {
-        loadComponentScopeAndAsynchronousProperties(priv, component);
+        loadComponentScopeAndAsynchronousProperties(descriptor, component);
       },
     });
     return;
   } else if (component.scope) {
-    await loadComponentScope(priv, component);
+    await loadComponentScope(descriptor, component);
   }
 
-  loadAsynchronousComponentProperties(priv, component);
+  loadAsynchronousComponentProperties(descriptor, component);
 }

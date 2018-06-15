@@ -29,15 +29,13 @@ export async function asyncRoutes(priv, action) {
 }
 
 export function routeAction(priv, action) {
-  const { type } = action;
-
   let changedValues;
   const prevState = priv.state;
 
   mutate(
     prevState,
     draftState => {
-      priv.reducers.get(type).forEach((descriptor, reducer) => {
+      priv.reducers.get(action.type).forEach((descriptor, reducer) => {
         reducer.call(priv.context, action, draftState);
       });
     },

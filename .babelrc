@@ -4,7 +4,6 @@
     [
       '@babel/preset-env',
       {
-        cacheDirectory: true,
         shippedProposals: true,
         useBuiltIns: 'usage',
         targets: {
@@ -29,7 +28,7 @@
     //     polyfill: true,
     //   },
     // ],
-    '@babel/plugin-proposal-optional-chaining',
+    // '@babel/plugin-proposal-optional-chaining',
     'dynamic-import-node',
   ],
 }

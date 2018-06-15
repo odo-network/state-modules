@@ -21,6 +21,7 @@ export function select(k, props = emptyFrozenObject) {
   }
 
   const selected = path.reduce((p, c) => p[c], this.selectors);
+
   return getSelectedState(this.state, selected, props);
 }
 
@@ -43,36 +44,36 @@ function iterateActionSubscribers(action, subscribers, promises = []) {
 }
 
 class MemoizedUpdateActions {
-  memoized = new Map();
+  #memoized = new Map();
+  #context;
   constructor(context) {
-    this.context = context;
+    this.#context = context;
   }
-  getState(selectors) {
-    return Object.keys(selectors).reduce((p, c) => {
-      if (this.memoized.has(selectors[c])) {
-        p[c] = this.memoized.get(selectors[c]);
+  getState = selectors =>
+    Object.keys(selectors).reduce((p, c) => {
+      if (this.#memoized.has(selectors[c])) {
+        p[c] = this.#memoized.get(selectors[c]);
       } else {
-        const value = getSelectedState(this.context.state, selectors[c]);
-        this.memoized.set(selectors[c], value);
+        const value = getSelectedState(this.#context.state, selectors[c]);
+        this.#memoized.set(selectors[c], value);
         p[c] = value;
       }
       return p;
     }, Object.create(null));
-  }
 }
 
 function iterateUpdateSubscribers(context, subscribers, changedValues) {
   const handlers = new Set();
-  if (changedValues.length > subscribers.size) {
-    subscribers.forEach((set, key) => {
+  if (changedValues.length >= subscribers.updates.size) {
+    subscribers.updates.forEach((set, key) => {
       if (changedValues.includes(key)) {
         set.forEach(h => handlers.add(h));
       }
     });
   } else {
     changedValues.forEach(change => {
-      if (subscribers.has(change)) {
-        subscribers.get(change).forEach(h => handlers.add(h));
+      if (subscribers.updates.has(change)) {
+        subscribers.updates.get(change).forEach(h => handlers.add(h));
       }
     });
   }
@@ -114,7 +115,7 @@ export async function dispatch(priv, _action) {
       handle.hook('after', priv, action, prevState, changedValues);
     }
     if (changedValues && priv.subscribers && priv.subscribers.updates.size > 0) {
-      iterateUpdateSubscribers(priv.context, priv.subscribers.updates, changedValues);
+      iterateUpdateSubscribers(priv.context, priv.subscribers, changedValues);
     }
   } catch (e) {
     console.error(

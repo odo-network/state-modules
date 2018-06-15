@@ -72,8 +72,10 @@ function MyComponent({ counterValue, counterIncrement, counterDecrement }) {
   return (
     <div>
       <div>Value: {counterValue}</div>
-      <button onClick={() => counterIncrement(1)}>Increment</button>
-      <button onClick={() => counterDecrement(1)}>Decrement</button>
+      <button onClick={() => counterIncrement(1)}>Increment 1</button>
+      <button onClick={() => counterDecrement(1)}>Decrement 1</button>
+      <button onClick={() => counterIncrement(5)}>Increment 5</button>
+      <button onClick={() => counterIncrement(5)}>Decrement 5</button>
     </div>
   );
 }
@@ -85,6 +87,13 @@ export default state.connect(
   actions => ({
     counterIncrement: actions.increment,
     counterDecrement: actions.decrement
-  })
+  }),
+  (props, state, actions) => {
+    return {
+      ...props,
+      ...state,
+      ...actions
+    };
+  }
 )(MyComponent);
 ```
