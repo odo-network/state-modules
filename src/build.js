@@ -84,7 +84,7 @@ function handleBuildSelectors(descriptor, component) {
     );
   });
 
-  console.log('Selectors: ', descriptor.selectors[STATE_SELECTOR]);
+  // console.log('Selectors: ', descriptor.selectors[STATE_SELECTOR]);
 }
 
 function handleBuildReducers(descriptor, component) {
