@@ -1,74 +1,6 @@
-// let i = 0;
-
-// // eslint-disable-next-line
-// function noop() {}
-
-// class Subscription {
-//   constructor(cb, _subscription, args) {
-//     const subscription = Object.assign(
-//       {
-//         start: noop,
-//         next: noop,
-//         complete: noop,
-//       },
-//       _subscription,
-//     );
-//     Object.assign(this, cb.call(this, subscription, ...args));
-//   }
-// }
-
-// class Subscriber {
-//   #cb;
-//   constructor(cb) {
-//     this.#cb = cb;
-//   }
-//   subscribe = (subscription, ...args) => new Subscription(this.#cb, subscription, args);
-// }
-
-// function SubscriberFunction(observer, ...args) {
-//   console.log('Subscription Starts! ', observer, args);
-
-//   const intervalID = setInterval(() => {
-//     console.log('Next! ', this);
-//     observer.next(i++);
-//   }, 10000);
-
-//   return {
-//     setProps(props) {
-//       console.log('Setting Props: ', props);
-//     },
-//     cancel() {
-//       console.log('Cancel!');
-//       clearInterval(intervalID);
-//     },
-//   };
-// }
-
-// function startSubscription() {
-//   return new Subscriber(SubscriberFunction);
-// }
-
-// const subscriber = startSubscription();
-
-// console.log(subscriber);
-
-// const subscription = subscriber.subscribe(
-//   {
-//     next(val) {
-//       console.log('Next: ', val);
-//     },
-//   },
-//   1,
-//   2,
-//   3,
-// );
-
-// subscription.setProps({ counterID: 'test' });
-// console.log(subscription);
-
 /* @flow */
 // Any quick tests that we want to run `yarn try`
-import { performance } from 'perf_hooks';
+
 import createState from './src/index';
 // import connectReact from './react-state-modules/subscribe';
 
@@ -76,7 +8,7 @@ function simpleConnector(subscriber, actions) {
   return WrappedComponent => {
     const subscription = actions.subscribe({
       next(val) {
-        console.log('Simple Connect NEXT: ', val);
+        console.log('Simple Connect NEXT: ', val.state);
       },
     });
     return {
@@ -176,7 +108,7 @@ const connector = state.connect();
 
 const Component = {
   props: {
-    counterID: 'default',
+    counterID: 'test',
   },
 };
 
@@ -204,8 +136,7 @@ state.actions
   })
   .then(() => {
     console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
-    connected.setProps({ counterID: 'default' });
-    return state.actions.increment(1);
+    return state.actions.increment(1, 'test');
   })
   .catch(e => {
     console.error('Error: ', e);

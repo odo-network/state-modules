@@ -206,11 +206,16 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
 
   const cancel = () => {
     unsubscribeFromSelector(descriptor.subscribers.updates, dynamicMap, selector, handler);
+    if (hasDynamicSelectors) {
+      props = undefined;
+      dynamicMap = undefined;
+      dynamicRefCounts = undefined;
+    }
     actions.complete();
   };
 
   const handler = action => {
-    actions.next(action);
+    actions.next(action, props);
     if (once) {
       cancel();
     }

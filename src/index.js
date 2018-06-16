@@ -11,8 +11,8 @@ function createConnectSubscription(descriptor, subscriber) {
      */
     subscribe: (subscription, once = false) =>
       utils.subscribeToSelector(descriptor, subscriber.selectors, once).subscribe({
-        next(actions) {
-          subscriber.state = actions.getState(subscriber.selectors);
+        next(actions, props) {
+          subscriber.state = actions.getState(subscriber.selectors, props);
           subscription.next(subscriber);
         },
         complet() {

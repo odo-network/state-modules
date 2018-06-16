@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "author": "Braden R. Napier",
   "private": false,
+  "public": true,
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
@@ -56,7 +57,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "immuta": "^1.1.1",
+    "immuta": "^1.1.2",
     "to-redux-type": "^1.2.3"
   },
   "ava": {

@@ -1,4 +1,4 @@
-import { MODULE_NAME, emptyFrozenObject } from './context';
+import { MODULE_NAME, STATE_SELECTOR, emptyFrozenObject } from './context';
 import { getSelectedState } from './utils';
 import * as handle from './handlers';
 
@@ -49,13 +49,16 @@ class MemoizedUpdateActions {
   constructor(context) {
     this.#context = context;
   }
-  getState = selectors =>
+  getState = (selectors, props) =>
     Object.keys(selectors).reduce((p, c) => {
-      if (this.#memoized.has(selectors[c])) {
-        p[c] = this.#memoized.get(selectors[c]);
+      const selector = selectors[c];
+      if (typeof selector === 'object' && selector[STATE_SELECTOR].dynamic) {
+        p[c] = getSelectedState(this.#context.state, selector, props);
+      } else if (this.#memoized.has(selector)) {
+        p[c] = this.#memoized.get(selector);
       } else {
-        const value = getSelectedState(this.#context.state, selectors[c]);
-        this.#memoized.set(selectors[c], value);
+        const value = getSelectedState(this.#context.state, selector, props);
+        this.#memoized.set(selector, value);
         p[c] = value;
       }
       return p;
