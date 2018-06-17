@@ -8,13 +8,14 @@
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
+    "postinstall": "npm-run-all flow:flow-typed",
     "prepublishOnly": "npm-run-all test build",
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "build": "rimraf dist && npm-run-all -p build:*",
     "build:flow": "flow-copy-source src dist",
     "build:babel": "cross-env NODE_ENV=production babel -d dist src",
     "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
-    "test": "nyc --reporter=html --reporter=text ava",
+    "test": "cross-env NODE_ENV=test nyc mocha --recursive --require ./test/setup.js ./test/tests/*.js",
     "coverage": "cross-env NODE_ENV=test nyc report --reporter=text-lcov | coveralls",
     "test:watch": "cross-env NODE_ENV=test ava --watch"
   },
@@ -44,11 +45,11 @@
     "@babel/preset-flow": "^7.0.0-beta.51",
     "@babel/preset-stage-0": "^7.0.0-beta.51",
     "@babel/register": "^7.0.0-beta.51",
-    "ava": "^1.0.0-beta.6",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "8.2.1",
     "babel-plugin-dynamic-import-node": "^1.2.0",
     "babel-plugin-istanbul": "^4.1.6",
+    "chai": "^4.1.2",
     "coveralls": "^3.0.1",
     "cross-env": "^5.2.0",
     "eslint": "^4.19.1",
@@ -59,6 +60,7 @@
     "flow-bin": "^0.74.0",
     "flow-copy-source": "^2.0.0",
     "flow-typed": "^2.4.0",
+    "mocha": "^5.2.0",
     "npm-run-all": "^4.1.3",
     "nyc": "^12.0.2",
     "rimraf": "^2.6.2"
@@ -68,6 +70,8 @@
     "to-redux-type": "^1.2.3"
   },
   "nyc": {
+    "check-coverage": true,
+    "all": true,
     "reporter": [
       "text-lcov",
       "lcov",
@@ -75,21 +79,12 @@
     ],
     "require": [
       "@babel/register"
-    ]
-  },
-  "ava": {
-    "babel": false,
-    "compileEnhancements": false,
-    "verbose": true,
-    "files": [
-      "tests/*.js"
     ],
-    "sources": [
-      "src/**/*.js",
-      "!dist/*"
+    "exclude": [
+      "**/*.test.js",
+      "**/node_modules/**"
     ],
-    "require": [
-      "@babel/register"
-    ]
+    "sourceMap": false,
+    "instrument": false
   }
 }

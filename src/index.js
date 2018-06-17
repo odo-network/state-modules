@@ -45,7 +45,7 @@ function createConnectSubscription(descriptor, subscriber) {
  *
  * @param {SelectedState} selectedState
  */
-function defaultMerger(selectedState) {
+export function defaultMerger(selectedState) {
   return selectedState;
 }
 
