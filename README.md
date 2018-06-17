@@ -1,5 +1,6 @@
 # State Modules
 
+[![Build Status](https://travis-ci.com/odo-network/state-modules.svg?branch=master)](https://travis-ci.com/odo-network/state-modules)
 [![Coverage Status](https://coveralls.io/repos/github/odo-network/state-modules/badge.svg?branch=master)](https://coveralls.io/github/odo-network/state-modules?branch=master)
 
 State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and [`immuta`](https://www.github.com/odo-network/immuta) (which in-turn is inspired by `immer`).
