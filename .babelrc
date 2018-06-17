@@ -31,4 +31,9 @@
     // '@babel/plugin-proposal-optional-chaining',
     'dynamic-import-node',
   ],
+  env: {
+    test: {
+      plugins: ['istanbul'],
+    },
+  },
 }

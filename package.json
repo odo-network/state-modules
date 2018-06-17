@@ -8,15 +8,14 @@
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall2": "npm-run-all flow:flow-typed",
     "prepublishOnly": "npm-run-all test build",
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "build": "rimraf dist && npm-run-all -p build:*",
     "build:flow": "flow-copy-source src dist",
-    "build:babel": "babel -d dist src",
-    "try": "babel-node ./quick-test.js",
-    "test": "nyc ava && nyc report --reporter=text-lcov | coveralls",
-    "test:watch": "ava --watch"
+    "build:babel": "cross-env NODE_ENV=production babel -d dist src",
+    "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
+    "test": "cross-env NODE_ENV=test nyc ava && nyc report --reporter=text-lcov | coveralls",
+    "test:watch": "cross-env NODE_ENV=test ava --watch"
   },
   "repository": {
     "type": "git",
@@ -48,6 +47,7 @@
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "8.2.1",
     "babel-plugin-dynamic-import-node": "^1.2.0",
+    "babel-plugin-istanbul": "^4.1.6",
     "coveralls": "^3.0.1",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
