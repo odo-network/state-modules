@@ -4,6 +4,11 @@ import { MODULE_NAME, emptyFrozenObject } from './context';
 import * as action from './actions';
 import * as utils from './utils';
 
+/**
+ *
+ * @param {*} descriptor
+ * @param {*} subscriber
+ */
 function createConnectSubscription(descriptor, subscriber) {
   return {
     /**
@@ -24,10 +29,32 @@ function createConnectSubscription(descriptor, subscriber) {
           }
         },
       }),
+    /**
+     * Allows retrieval of the state represented by the given selectors immediately after
+     * connecting the component.  This is generally used so that the default state that is
+     * selected can be given on an initial render of the connected UI.
+     *
+     * @param {?SelectorProps} props Optionally provide props to feed to any dynamic selectors
+     */
     getSelectorState: props => utils.getSelectedState(descriptor.state, subscriber.selectors, props),
   };
 }
 
+/**
+ * By default, the merger receives the selected state and returns it without making any modifications.
+ *
+ * @param {SelectedState} selectedState
+ */
+function defaultMerger(selectedState) {
+  return selectedState;
+}
+
+/**
+ *
+ * @param {*} descriptor
+ * @param {*} data
+ * @param {*} _connector
+ */
 function createConnection(descriptor, data, _connector) {
   const connector = _connector || descriptor.config.connector;
 
@@ -57,11 +84,8 @@ function createConnection(descriptor, data, _connector) {
       undefined,
       data.withSelectors(descriptor.selectors, descriptor.state),
     ),
+    merger: subscriber.merger || defaultMerger,
   };
-
-  if (data.withMerger) {
-    subscriber.merger = data.withMerger;
-  }
 
   return connector(subscriber, createConnectSubscription(descriptor, subscriber));
 }
@@ -85,13 +109,10 @@ class StateModule {
     routes: new Map(),
     reducers: new Map(),
     components: new Map(),
-    queue: {
-      creates: new Set(),
-      resolves: new Set(),
-    },
     // added dynamically when used
     // subscribers: new Map(),
     // selectors: new Map(),
+    // queue: { creates: new Set(), resolves: new Set() }
   };
 
   constructor(_settings) {
@@ -101,7 +122,7 @@ class StateModule {
     descriptor.config = config;
     descriptor.hooks = hooks;
     if (selectors) {
-      descriptor.selectors = Object.assign({}, selectors);
+      descriptor.selectors = Object.assign(Object.create(null), selectors);
     }
     descriptor.context = {
       config,
@@ -171,13 +192,26 @@ class StateModule {
       connector,
     );
 
-  create = (...components) => Reflect.apply(this.component, this, components);
+  /**
+   * An alias for StateModule.component
+   */
+  create = component => Reflect.apply(this.component, this, component);
 
+  /**
+   * Creates a State Component that will be merged into the StateModule.  If asynchronous, will add
+   * the promise so that `state.resolve()` returns a Promise guaranteeing it is resolved before
+   * resolving.
+   */
   component = component => {
     const descriptor = this.#descriptor;
     const response = handleNewStateModule(descriptor, component);
     if (response && response.then) {
-      // component is being built asynchronously
+      if (!descriptor.queue) {
+        descriptor.queue = {
+          creates: new Set(),
+          resolves: new Set(),
+        };
+      }
       descriptor.queue.creates.add(response);
       response
         .then(() => {
@@ -213,6 +247,12 @@ class StateModule {
       }
     });
     if (promises.length) {
+      if (!descriptor.queue) {
+        descriptor.queue = {
+          creates: new Set(),
+          resolves: new Set(),
+        };
+      }
       const promise = Promise.all(promises)
         .then(() => {
           descriptor.queue.creates.delete(promise);
@@ -229,14 +269,13 @@ class StateModule {
         });
       descriptor.queue.creates.add(promise);
     }
-
     return this;
   };
 
   resolve = () =>
     new Promise((resolve, reject) => {
       const descriptor = this.#descriptor;
-      if (descriptor.queue.creates.size === 0) {
+      if (!descriptor.queue || descriptor.queue.creates.size === 0) {
         return resolve();
       }
       descriptor.queue.resolves.add({ resolve, reject });

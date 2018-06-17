@@ -1,5 +1,7 @@
 # State Modules
 
+[![Coverage Status](https://coveralls.io/repos/github/odo-network/immuta/badge.svg?branch=master)](https://coveralls.io/github/odo-network/immuta?branch=master)
+
 State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and [`immuta`](https://www.github.com/odo-network/immuta) (which in-turn is inspired by `immer`).
 
 State Modules use ES6 Proxies to capture mutations performed against a "draft state". If changes occur while reducing a dispatched action, updates are dispatched directly to only those components which have subscribed to changes for the given values.
