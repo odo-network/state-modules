@@ -144,7 +144,7 @@ describe('[state.connect] | state.connect expects connector provided', () => {
 describe('[state.connect] | state.connect subscribe() works as expected', () => {
   const state = getStateModule();
 
-  it('connects to the state as specified', done => {
+  it('connects to the state as expected', done => {
     function testConnector(subscriber, actions) {
       expect(subscriber).to.have.property('context');
       expect(subscriber).to.have.property('dispatchers');
@@ -159,6 +159,9 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
         const subscription = actions.subscribe(
           {
             next(s) {
+              if (complete) {
+                throw new Error('Connector Should have cancelled after the first run! in state.connect subscribe() works as expected');
+              }
               if (s.state.counter.value === 1) {
                 complete = true;
               }
@@ -200,6 +203,15 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
     expect(subscription.unsubscribe).to.be.a('function');
     expect(subscription.cancel).to.be.equal(subscription.unsubscribe);
 
+    expect(subscription.getSelectorState()).to.deep.equal({
+      counter: {
+        value: 0,
+        created,
+        lastChanged: 0,
+      },
+    });
+
+    state.actions.increment();
     state.actions.increment();
   });
 });
