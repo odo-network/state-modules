@@ -174,7 +174,7 @@ async function loadComponentScopeAndAsynchronousProperties(descriptor, component
   loadAsynchronousComponentProperties(descriptor, component);
 }
 
-export default async function handleNewStateModule(descriptor, _component) {
+export default function handleNewStateModule(descriptor, _component) {
   let component = _component;
   if (typeof component === 'function') {
     // TODO : Need to pass this function a configuration for the module.
@@ -213,8 +213,9 @@ export default async function handleNewStateModule(descriptor, _component) {
     });
     return;
   } else if (component.scope) {
-    await loadComponentScope(descriptor, component);
+    return loadComponentScope(descriptor, component).then(() =>
+      loadAsynchronousComponentProperties(descriptor, component));
   }
 
-  loadAsynchronousComponentProperties(descriptor, component);
+  return loadAsynchronousComponentProperties(descriptor, component);
 }

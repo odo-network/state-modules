@@ -169,28 +169,63 @@ class StateModule {
 
   create = (...components) => Reflect.apply(this.component, this, components);
 
-  component = (...components) => {
+  component = component => {
+    const descriptor = this.#descriptor;
+    const response = handleNewStateModule(descriptor, component);
+    if (response && response.then) {
+      // component is being built asynchronously
+      descriptor.queue.creates.add(response);
+      response
+        .then(() => {
+          descriptor.queue.creates.delete(response);
+          if (descriptor.queue.resolves.size > 0 && descriptor.queue.creates.size === 0) {
+            descriptor.queue.resolves.forEach(p => p.resolve());
+            descriptor.queue.resolves.clear();
+          }
+        })
+        .catch(e => {
+          descriptor.queue.creates.delete(response);
+          descriptor.queue.resolves.forEach(p => p.reject(e));
+          descriptor.queue.resolves.clear();
+          throw e;
+        });
+    }
+    return this;
+  };
+
+  /**
+   * Composes multiple components at once.  This can also help when building many asynchronously handled
+   * components as we are able to bundle the resulting promises rather than needing to handle many within
+   * the processing queue.
+   */
+  compose = (...components) => {
     const descriptor = this.#descriptor;
     const promises = [];
     components.forEach(component => {
       /* Each Module must be added to the Manager */
-      promises.push(handleNewStateModule(descriptor, component));
+      const response = handleNewStateModule(descriptor, component);
+      if (response && response.then) {
+        promises.push(response);
+      }
     });
-    const promise = Promise.all(promises)
-      .then(() => {
-        descriptor.queue.creates.delete(promise);
-        if (descriptor.queue.creates.size === 0 && descriptor.queue.resolves.size > 0) {
-          descriptor.queue.resolves.forEach(p => p.resolve());
+    if (promises.length) {
+      const promise = Promise.all(promises)
+        .then(() => {
+          descriptor.queue.creates.delete(promise);
+          if (descriptor.queue.creates.size === 0 && descriptor.queue.resolves.size > 0) {
+            descriptor.queue.resolves.forEach(p => p.resolve());
+            descriptor.queue.resolves.clear();
+          }
+        })
+        .catch(e => {
+          descriptor.queue.creates.delete(promise);
+          descriptor.queue.resolves.forEach(p => p.reject(e));
           descriptor.queue.resolves.clear();
-        }
-      })
-      .catch(e => {
-        descriptor.queue.creates.delete(promise);
-        descriptor.queue.resolves.forEach(p => p.reject(e));
-        descriptor.queue.resolves.clear();
-        throw e;
-      });
-    descriptor.queue.creates.add(promise);
+          throw e;
+        });
+      descriptor.queue.creates.add(promise);
+    }
+
     return this;
   };
 
