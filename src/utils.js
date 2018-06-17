@@ -48,6 +48,9 @@ export function merge(obj, withObj, descriptor, module) {
   } else if (obj instanceof Set && withObj instanceof Set) {
     withObj.forEach(value => obj.add(value));
   } else {
+    // Object.keys() performs better for larger objects (for in for smaller),
+    // we use the object.keys method here as we will not know the size of the obj
+    // beforehand
     Object.keys(withObj).forEach(key => {
       const value = withObj[key];
       if (obj[key] || obj[key] === null || typeof obj[key] === 'boolean' || typeof obj[key] === 'number') {

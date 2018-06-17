@@ -127,20 +127,26 @@ console.log('Connected: ', connected);
 
 connected.setProps({ counterID: 'test' });
 
-state.actions
-  .increment(2, 'test')
-  .then(() => {
-    console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+// state.actions
+//   .increment(2, 'test')
+//   .then(() => {
+//     console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
 
-    return state.actions.decrement(1, 'test');
-  })
-  .then(() => {
-    console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
-    return state.actions.increment(1, 'test');
-  })
-  .catch(e => {
-    console.error('Error: ', e);
-  });
+//     return state.actions.decrement(1, 'test');
+//   })
+//   .then(() => {
+//     console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+//     return state.actions.increment(1, 'test');
+//   })
+//   .catch(e => {
+//     console.error('Error: ', e);
+//   });
+
+state.actions.increment(2, 'test');
+console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+state.actions.decrement(1, 'test');
+console.log('Counter is now: ', state.select('counterByID', { counterID: 'test' }));
+state.actions.increment(1, 'test');
 
 // // console.log('Connected: ', connected);
 

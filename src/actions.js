@@ -84,7 +84,7 @@ function iterateUpdateSubscribers(context, subscribers, changedValues) {
   handlers.forEach(handler => handler(actions));
 }
 
-export async function dispatch(priv, _action) {
+export function dispatch(priv, _action) {
   if (!_action) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Tried to dispatch an empty action`);
   } else if (!_action.type) {
@@ -97,8 +97,9 @@ export async function dispatch(priv, _action) {
   let changedValues;
 
   if (priv.subscribers && priv.subscribers.actions.size > 0) {
-    const promises = iterateActionSubscribers(action, priv.subscribers.actions);
-    if (promises.length) await Promise.all(promises);
+    // const promises = iterateActionSubscribers(action, priv.subscribers.actions);
+    iterateActionSubscribers(action, priv.subscribers.actions);
+    // if (promises.length) await Promise.all(promises);
   }
 
   const prevState = priv.state;
@@ -112,7 +113,10 @@ export async function dispatch(priv, _action) {
       changedValues = handle.routeAction(priv, action);
     }
     if (priv.routes.has(action.type)) {
-      await handle.asyncRoutes(priv, action);
+      // await handle.asyncRoutes(priv, action);
+      // experiment to see effect of asynchronous effects not being awaited
+      // (hoping to make action dispatch fully synchronous)
+      handle.asyncRoutes(priv, action);
     }
     if (priv.hooks && priv.hooks.after) {
       handle.hook('after', priv, action, prevState, changedValues);

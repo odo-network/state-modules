@@ -1,50 +1,50 @@
 import mutate from 'immuta';
 import { MODULE_NAME } from './context';
 
-export async function asyncRoutes(priv, action) {
-  const { type } = action;
-  const routes = priv.routes.get(type);
+const routePromises = new Set();
+let lock = false;
 
-  const promises = [];
+function handleLock(value) {
+  lock = !!value;
+}
 
-  let lock = false;
-
-  const handleLock = value => {
-    lock = !!value;
-  };
+export async function asyncRoutes(descriptor, action) {
+  const routes = descriptor.routes.get(action.type);
 
   for (const asyncReducer of routes) {
     lock = false;
-    const promise = asyncReducer.call(priv.context, action, handleLock);
+    const promise = asyncReducer.call(descriptor.context, action, handleLock);
     if (lock) {
       await promise;
     } else {
-      promises.push(promise);
+      routePromises.add(promise);
     }
   }
 
-  if (promises.length) {
-    await Promise.all(promises);
+  if (routePromises.size > 0) {
+    const pall = Promise.all(routePromises);
+    routePromises.clear();
+    await pall;
   }
 }
 
-export function routeAction(priv, action) {
+export function routeAction(descriptor, action) {
   let changedValues;
-  const prevState = priv.state;
+  const prevState = descriptor.state;
 
   mutate(
     prevState,
     draftState => {
-      priv.reducers.get(action.type).forEach((descriptor, reducer) => {
-        reducer.call(priv.context, action, draftState);
+      descriptor.reducers.get(action.type).forEach((_, reducer) => {
+        reducer.call(descriptor.context, action, draftState);
       });
     },
     // Executed only when values are changed by the reducer calls above
     (nextState, changedMap) => {
       changedValues = [...changedMap.keys()].map(k => k.join('.'));
-      priv.state = nextState;
-      if (priv.hooks && priv.hooks.change) {
-        hook('change', priv, action, prevState, changedValues);
+      descriptor.state = nextState;
+      if (descriptor.hooks && descriptor.hooks.change) {
+        hook('change', descriptor, action, prevState, changedValues);
       }
     },
   );
@@ -52,12 +52,12 @@ export function routeAction(priv, action) {
   return changedValues;
 }
 
-export function actionHook(hookID, priv, action) {
+export function actionHook(hookID, descriptor, action) {
   let nextAction = action;
 
-  if (priv.hooks?.[hookID]) {
-    for (const hookFn of priv.hooks[hookID]) {
-      const newAction = hookFn.call(priv.context, nextAction);
+  if (descriptor.hooks?.[hookID]) {
+    for (const hookFn of descriptor.hooks[hookID]) {
+      const newAction = hookFn.call(descriptor.context, nextAction);
       if (typeof newAction === 'object') {
         nextAction = newAction;
       }
@@ -69,15 +69,15 @@ export function actionHook(hookID, priv, action) {
 
   if (nextAction !== null && !nextAction.type) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      priv.config.mid
+      descriptor.config.mid
     } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
   }
 
   return nextAction;
 }
 
-export function hook(hookID, priv, ...args) {
-  priv.hooks?.[hookID]?.forEach(hookFn => {
-    hookFn.call(priv.context, ...args);
+export function hook(hookID, descriptor, ...args) {
+  descriptor.hooks?.[hookID]?.forEach(hookFn => {
+    hookFn.call(descriptor.context, ...args);
   });
 }

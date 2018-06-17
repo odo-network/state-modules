@@ -33,30 +33,32 @@ function handleBuildState(descriptor, component, state) {
 
 function handleBuildActions(descriptor, component, actions, _obj) {
   const obj = _obj || descriptor.actions;
-  Object.keys(actions).forEach(_type => {
-    let args = actions[_type];
-    if (!Array.isArray(args) && typeof args === 'object') {
-      obj[_type] = obj[_type] || {};
-      return handleBuildActions(descriptor, component, args, obj[_type]);
-    } else if (obj[_type]) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action ${
-        component.config.cid
-      }.${_type} already exists on the module.`);
-    } else if (args === null) {
-      args = [];
+  for (const _type in actions) {
+    if (Object.prototype.hasOwnProperty.call(actions, _type)) {
+      let args = actions[_type];
+      if (!Array.isArray(args) && typeof args === 'object') {
+        obj[_type] = obj[_type] || {};
+        return handleBuildActions(descriptor, component, args, obj[_type]);
+      } else if (obj[_type]) {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action ${
+          component.config.cid
+        }.${_type} already exists on the module.`);
+      } else if (args === null) {
+        args = [];
+      }
+      const action = { type: `${component.config.prefix}${toSnakeCase(_type)}` };
+      if (typeof args[0] === 'object') {
+        Object.assign(action, args.shift());
+      }
+      obj[_type] = handleBoundAction.bind({
+        dispatch: descriptor.context.dispatch,
+        mid: descriptor.config.mid,
+        cid: component.config.cid,
+        action,
+        args,
+      });
     }
-    const action = { type: `${component.config.prefix}${toSnakeCase(_type)}` };
-    if (typeof args[0] === 'object') {
-      Object.assign(action, args.shift());
-    }
-    obj[_type] = handleBoundAction.bind({
-      dispatch: descriptor.context.dispatch,
-      mid: descriptor.config.mid,
-      cid: component.config.cid,
-      action,
-      args,
-    });
-  });
+  }
 }
 
 function handleBuildSelectors(descriptor, component) {
@@ -70,42 +72,46 @@ function handleBuildSelectors(descriptor, component) {
 
   const ancestors = new Set().add(descriptor.selectors[STATE_SELECTOR]);
 
-  Object.keys(component.selectors).forEach(selectorID => {
-    if (descriptor.selectors[selectorID]) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-        descriptor.config.mid
-      } | Selector ID ${selectorID} was already added to the state module.`);
+  for (const selectorID in component.selectors) {
+    if (Object.prototype.hasOwnProperty.call(component.selectors, selectorID)) {
+      if (descriptor.selectors[selectorID]) {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
+          descriptor.config.mid
+        } | Selector ID ${selectorID} was already added to the state module.`);
+      }
+      descriptor.selectors[selectorID] = utils.buildSelectors(
+        descriptor,
+        component,
+        component.selectors[selectorID],
+        ancestors,
+      );
     }
-    descriptor.selectors[selectorID] = utils.buildSelectors(
-      descriptor,
-      component,
-      component.selectors[selectorID],
-      ancestors,
-    );
-  });
-
-  // console.log('Selectors: ', descriptor.selectors[STATE_SELECTOR]);
+  }
 }
 
 function handleBuildReducers(descriptor, component) {
   // * Each key in schema indicates a piece of state we need to reduce.
-  Object.keys(component.reducers).forEach(_type => {
-    const type = `${component.config.prefix}${toSnakeCase(_type)}`;
-    const set = descriptor.reducers.get(type) || new Set();
-    set.add(component.reducers[_type]);
-    descriptor.reducers.set(type, set);
-  });
+  for (const _type in component.reducers) {
+    if (Object.prototype.hasOwnProperty.call(component.reducers, _type)) {
+      const type = `${component.config.prefix}${toSnakeCase(_type)}`;
+      const set = descriptor.reducers.get(type) || new Set();
+      set.add(component.reducers[_type]);
+      descriptor.reducers.set(type, set);
+    }
+  }
 }
 
 function handleBuildHelpers(descriptor, component) {
-  Object.keys(component.helpers).forEach(helperID => {
-    if (utils.hasProperty(descriptor.helpers, helperID)) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
-        component.config.cid
-      } | Defined routes but no matching effects exist.`);
+  for (const helperID in component.helpers) {
+    if (Object.prototype.hasOwnProperty.call(component.helpers, helperID)) {
+      if (utils.hasProperty(descriptor.helpers, helperID)) {
+        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
+          component.config.cid
+        } | Defined routes but no matching effects exist.`);
+      }
+      descriptor.helpers[helperID] = component.helpers[helperID];
     }
-    descriptor.helpers[helperID] = component.helpers[helperID];
-  });
+  }
 }
 
 function handleBuildRoutes(descriptor, component) {
