@@ -143,10 +143,21 @@ export function getSelectedState(state, selected, props = emptyFrozenObject) {
   const result = {};
   for (const selectedProperty in selected) {
     if (Object.prototype.hasOwnProperty.call(selected, selectedProperty)) {
-      result[selectedProperty] = getSelectedState(state, selected[selectedProperty]);
+      result[selectedProperty] = getSelectedState(state, selected[selectedProperty], props);
     }
   }
   return result;
+}
+
+export function checkActionCondition(action, condition) {
+  if (
+    (typeof condition === 'function' && condition(action)) ||
+    (typeof condition === 'string' && action.type === condition) ||
+    (Array.isArray(condition) && condition.some(c => (typeof c === 'function' ? c(action) : c === action.type)))
+  ) {
+    return true;
+  }
+  return false;
 }
 
 export function subscribeToAction(descriptor, condition, once = false) {
@@ -156,7 +167,7 @@ export function subscribeToAction(descriptor, condition, once = false) {
       updates: new Map(),
     };
   }
-  return createSubscriber(actionSubscriptionHandler, descriptor.subscribers, condition, once);
+  return createSubscriber(actionSubscriptionHandler, descriptor, condition, once);
 }
 
 export function subscribeToSelector(descriptor, selector, once = false) {
@@ -169,25 +180,26 @@ export function subscribeToSelector(descriptor, selector, once = false) {
   return createSubscriber(selectorSubscriptionHandler, descriptor, selector, once);
 }
 
-function actionSubscriptionHandler(actions, subscriptions, condition, once) {
+function actionSubscriptionHandler(actions, descriptor, condition, once) {
   // Create an event handler which sends data to the sink
   const handler = action => {
-    actions.next(action);
+    actions.next(action, descriptor.context);
     if (once) {
-      cancel();
+      cancel('once');
     }
   };
 
   // A cleanup function which will cancel the event stream
-  let cancel = () => {
-    unsubscribeHandlerFromPath(subscriptions.actions, handler, condition);
-    actions.complete();
+  let cancel = reason => {
+    unsubscribeHandlerFromPath(descriptor.subscribers.actions, handler, condition);
+    actions.complete(reason);
     cancel = noop;
   };
 
-  subscribeHandlerToPath(subscriptions.actions, handler, condition);
+  subscribeHandlerToPath(descriptor.subscribers.actions, handler, condition);
 
   return {
+    condition,
     unsubscribe: cancel,
     cancel,
   };
@@ -208,21 +220,21 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
 
   const hasDynamicSelectors = Boolean(selector[STATE_SELECTOR].dynamic);
 
-  let cancel = () => {
+  let cancel = reason => {
     unsubscribeFromSelector(descriptor.subscribers.updates, dynamicMap, selector, handler);
     if (hasDynamicSelectors) {
       props = undefined;
       dynamicMap = undefined;
       dynamicRefCounts = undefined;
     }
-    actions.complete();
+    actions.complete(reason);
     cancel = noop;
   };
 
-  const handler = action => {
-    actions.next(action, props);
+  const handler = memoizedActions => {
+    actions.next(memoizedActions, props, descriptor.context);
     if (once) {
-      cancel();
+      cancel('once');
     }
   };
 

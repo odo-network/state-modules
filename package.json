@@ -15,9 +15,8 @@
     "build:flow": "flow-copy-source src dist",
     "build:babel": "cross-env NODE_ENV=production babel -d dist src",
     "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
-    "test": "cross-env NODE_ENV=test nyc mocha --recursive --require ./test/setup.js ./test/tests/*.js",
-    "coverage": "cross-env NODE_ENV=test nyc report --reporter=text-lcov | coveralls",
-    "test:watch": "cross-env NODE_ENV=test ava --watch"
+    "test": "cross-env NODE_ENV=test nyc mocha --require @babel/register --recursive ./test/tests/*.js",
+    "coverage": "cross-env NODE_ENV=test nyc yarn test && nyc report --reporter=html --reporter=text-lcov | coveralls"
   },
   "repository": {
     "type": "git",
@@ -70,18 +69,16 @@
     "to-redux-type": "^1.2.3"
   },
   "nyc": {
-    "check-coverage": true,
-    "all": true,
     "reporter": [
-      "text-lcov",
+      "html",
       "lcov",
-      "text-summary"
+      "text"
     ],
     "require": [
       "@babel/register"
     ],
     "exclude": [
-      "**/*.test.js",
+      "test/",
       "**/node_modules/**"
     ],
     "sourceMap": false,

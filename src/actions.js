@@ -1,5 +1,5 @@
 import { MODULE_NAME, STATE_SELECTOR, emptyFrozenObject } from './context';
-import { getSelectedState } from './utils';
+import { getSelectedState, checkActionCondition } from './utils';
 import * as handle from './handlers';
 
 export function select(k, props = emptyFrozenObject) {
@@ -25,22 +25,16 @@ export function select(k, props = emptyFrozenObject) {
   return getSelectedState(this.state, selected, props);
 }
 
-function iterateActionSubscribers(action, subscribers, promises = []) {
+function iterateActionSubscribers(action, subscribers) {
+  // we implement batching here but we can improve it further if needed
+  // by unwinding any array type batching so they can also be included
+  // and we can reduce total necessary checks.  Not sure if that is necessary
+  // or beneficial at this time.
   subscribers.forEach((onMatch, condition) => {
-    if (
-      (typeof condition === 'function' && condition(action)) ||
-      (typeof condition === 'string' && action.type === condition) ||
-      (Array.isArray(condition) && condition.some(c => action.type === c))
-    ) {
-      onMatch.forEach(match => {
-        const r = match(action, condition, match);
-        if (r && typeof r?.then === 'function') {
-          promises.push(r);
-        }
-      });
+    if (checkActionCondition(action, condition)) {
+      onMatch.forEach(handler => handler(action));
     }
   });
-  return promises;
 }
 
 class MemoizedUpdateActions {
@@ -87,10 +81,14 @@ function iterateUpdateSubscribers(context, subscribers, changedValues) {
 export function dispatch(descriptor, _action) {
   if (!_action) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Tried to dispatch an empty action`);
-  } else if (!_action.type) {
+  } else if (
+    _action.type === undefined ||
+    _action.type === null ||
+    (typeof _action.type !== 'string' && typeof _action.type !== 'number' && typeof _action.type !== 'symbol')
+  ) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
       descriptor.config.mid
-    } | Tried to dispatch an action without a type property expects { type: string, ... }`);
+    } | Tried to dispatch an action without a type property expects { type: string | number | symbol, ... }`);
   }
 
   let action = { ..._action };

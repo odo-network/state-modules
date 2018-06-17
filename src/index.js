@@ -58,12 +58,6 @@ export function defaultMerger(selectedState) {
 function createConnection(descriptor, data, _connector) {
   const connector = _connector || descriptor.config.connector;
 
-  if (!connector) {
-    throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
-      descriptor.config.mid
-    } | Can not connect to module, no connector has been defined.`);
-  }
-
   if (data.withSelectors.length === 1) {
     // do something?
   } else {
@@ -84,7 +78,7 @@ function createConnection(descriptor, data, _connector) {
       undefined,
       data.withSelectors(descriptor.selectors, descriptor.state),
     ),
-    merger: subscriber.merger || defaultMerger,
+    merger: data.merger || defaultMerger,
   };
 
   return connector(subscriber, createConnectSubscription(descriptor, subscriber));
@@ -116,14 +110,11 @@ class StateModule {
   };
 
   constructor(_settings) {
-    const { config, hooks, selectors } = utils.parseModuleSettings(_settings);
+    const { config, hooks } = utils.parseModuleSettings(_settings);
     const descriptor = this.#descriptor;
     this.mid = config.mid;
     descriptor.config = config;
     descriptor.hooks = hooks;
-    if (selectors) {
-      descriptor.selectors = Object.assign(Object.create(null), selectors);
-    }
     descriptor.context = {
       config,
       get components() {
@@ -181,21 +172,28 @@ class StateModule {
    * Returns a function that can be used to connect to the state module using the
    * given connector.
    */
-  connect = (connector = this.#descriptor.config.connector) => (withSelectors, withDispatchers, withMerger) =>
-    createConnection(
-      this.#descriptor,
-      {
-        withSelectors,
-        withDispatchers,
-        withMerger,
-      },
-      connector,
-    );
+  connect = (connector = this.#descriptor.config.connector) => {
+    if (typeof connector !== 'function') {
+      throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
+        this.#descriptor.config.mid
+      } | Expected a connector setup in state.config.connector or provided to state.connect().  Connector should be a function.`);
+    }
+    return (withSelectors, withDispatchers, withMerger) =>
+      createConnection(
+        this.#descriptor,
+        {
+          withSelectors,
+          withDispatchers,
+          withMerger,
+        },
+        connector,
+      );
+  };
 
   /**
    * An alias for StateModule.component
    */
-  create = component => Reflect.apply(this.component, this, component);
+  create = component => this.component(component);
 
   /**
    * Creates a State Component that will be merged into the StateModule.  If asynchronous, will add
@@ -270,6 +268,43 @@ class StateModule {
       descriptor.queue.creates.add(promise);
     }
     return this;
+  };
+
+  /**
+   * Allows subscribing to actions or values within the state directly.
+   */
+  subscribe = (to, condition, once) => {
+    switch (to) {
+      case 'action':
+        return utils.subscribeToAction(this.#descriptor, condition, once);
+      case 'selector': {
+        const subscriber = {
+          context: this.#descriptor.context,
+          selectors: utils.buildSelectors(this.#descriptor, undefined, condition),
+        };
+        return {
+          subscribe: subscription =>
+            utils.subscribeToSelector(this.#descriptor, subscriber.selectors, once).subscribe({
+              next(actions, props) {
+                subscriber.state = actions.getState(subscriber.selectors, props);
+                if (subscription.next) {
+                  subscription.next(subscriber);
+                }
+              },
+              complete(reason) {
+                if (subscription.complete) {
+                  subscription.complete(reason);
+                }
+              },
+            }),
+        };
+      }
+      default: {
+        throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
+          this.#descriptor.config.mid
+        } | Can not connect to module, no connector has been defined.`);
+      }
+    }
   };
 
   resolve = () =>
