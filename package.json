@@ -14,7 +14,8 @@
     "build:flow": "flow-copy-source src dist",
     "build:babel": "cross-env NODE_ENV=production babel -d dist src",
     "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
-    "test": "cross-env NODE_ENV=test nyc ava && nyc report --reporter=text-lcov | coveralls",
+    "test": "nyc --reporter=html --reporter=text ava",
+    "coverage": "cross-env NODE_ENV=test nyc report --reporter=text-lcov | coveralls",
     "test:watch": "cross-env NODE_ENV=test ava --watch"
   },
   "repository": {
@@ -66,6 +67,16 @@
     "immuta": "^1.1.2",
     "to-redux-type": "^1.2.3"
   },
+  "nyc": {
+    "reporter": [
+      "text-lcov",
+      "lcov",
+      "text-summary"
+    ],
+    "require": [
+      "@babel/register"
+    ]
+  },
   "ava": {
     "babel": false,
     "compileEnhancements": false,
@@ -79,7 +90,6 @@
     ],
     "require": [
       "@babel/register"
-    ],
-    "tap": true
+    ]
   }
 }

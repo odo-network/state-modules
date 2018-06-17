@@ -6,3 +6,4 @@ flow-typed/
 \.junk/
 .nyc_output
 coverage
+.coveralls.yml
