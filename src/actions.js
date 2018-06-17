@@ -84,53 +84,53 @@ function iterateUpdateSubscribers(context, subscribers, changedValues) {
   handlers.forEach(handler => handler(actions));
 }
 
-export function dispatch(priv, _action) {
+export function dispatch(descriptor, _action) {
   if (!_action) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | Tried to dispatch an empty action`);
+    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Tried to dispatch an empty action`);
   } else if (!_action.type) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      priv.config.mid
+      descriptor.config.mid
     } | Tried to dispatch an action without a type property expects { type: string, ... }`);
   }
 
   let action = { ..._action };
   let changedValues;
 
-  if (priv.subscribers && priv.subscribers.actions.size > 0) {
+  if (descriptor.subscribers && descriptor.subscribers.actions.size > 0) {
     // const promises = iterateActionSubscribers(action, priv.subscribers.actions);
-    iterateActionSubscribers(action, priv.subscribers.actions);
+    iterateActionSubscribers(action, descriptor.subscribers.actions);
     // if (promises.length) await Promise.all(promises);
   }
 
-  const prevState = priv.state;
+  const prevState = descriptor.state;
 
   try {
-    if (priv.hooks && priv.hooks.before) {
-      action = handle.actionHook('before', priv, action);
+    if (descriptor.hooks && descriptor.hooks.before) {
+      action = handle.actionHook('before', descriptor, action);
       if (action === null) return;
     }
-    if (priv.reducers.has(action.type)) {
-      changedValues = handle.routeAction(priv, action);
+    if (descriptor.reducers.has(action.type)) {
+      changedValues = handle.routeAction(descriptor, action);
     }
-    if (priv.routes.has(action.type)) {
+    if (descriptor.routes.has(action.type)) {
       // await handle.asyncRoutes(priv, action);
       // experiment to see effect of asynchronous effects not being awaited
       // (hoping to make action dispatch fully synchronous)
-      handle.asyncRoutes(priv, action);
+      handle.asyncRoutes(descriptor, action);
     }
-    if (priv.hooks && priv.hooks.after) {
-      handle.hook('after', priv, action, prevState, changedValues);
+    if (descriptor.hooks && descriptor.hooks.after) {
+      handle.hook('after', descriptor, action, prevState, changedValues);
     }
-    if (changedValues && priv.subscribers && priv.subscribers.updates.size > 0) {
-      iterateUpdateSubscribers(priv.context, priv.subscribers, changedValues);
+    if (changedValues && descriptor.subscribers && descriptor.subscribers.updates.size > 0) {
+      iterateUpdateSubscribers(descriptor.context, descriptor.subscribers, changedValues);
     }
   } catch (e) {
     console.error(
-      `[${MODULE_NAME}] | ERROR | Module ${priv.config.mid} | An Error occurred while dispatching action: `,
+      `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | An Error occurred while dispatching action: `,
       action,
       e,
     );
-    handle.hook('error', priv, action, e);
+    handle.hook('error', descriptor, action, e);
     throw e;
   }
 

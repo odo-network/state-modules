@@ -15,12 +15,16 @@ function createConnectSubscription(descriptor, subscriber) {
           subscriber.state = actions.getState(subscriber.selectors, props);
           subscription.next(subscriber);
         },
-        complet() {
+        complete() {
           if (subscription.complete) {
             subscription.complete();
           }
+          if (subscription.cancel) {
+            subscription.cancel();
+          }
         },
       }),
+    getSelectorState: props => utils.getSelectedState(descriptor.state, subscriber.selectors, props),
   };
 }
 

@@ -179,9 +179,10 @@ function actionSubscriptionHandler(actions, subscriptions, condition, once) {
   };
 
   // A cleanup function which will cancel the event stream
-  const cancel = () => {
+  let cancel = () => {
     unsubscribeHandlerFromPath(subscriptions.actions, handler, condition);
     actions.complete();
+    cancel = noop;
   };
 
   subscribeHandlerToPath(subscriptions.actions, handler, condition);
@@ -207,7 +208,7 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
 
   const hasDynamicSelectors = Boolean(selector[STATE_SELECTOR].dynamic);
 
-  const cancel = () => {
+  let cancel = () => {
     unsubscribeFromSelector(descriptor.subscribers.updates, dynamicMap, selector, handler);
     if (hasDynamicSelectors) {
       props = undefined;
@@ -215,6 +216,7 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
       dynamicRefCounts = undefined;
     }
     actions.complete();
+    cancel = noop;
   };
 
   const handler = action => {
@@ -232,6 +234,7 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
 
   return {
     dynamic: hasDynamicSelectors,
+    getSelectorState: p => getSelectedState(descriptor.state, selector, p || props),
     setSelectorProps: !hasDynamicSelectors
       ? noop
       : nextProps => {
