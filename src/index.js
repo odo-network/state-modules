@@ -20,12 +20,9 @@ function createConnectSubscription(descriptor, subscriber) {
           subscriber.state = actions.getState(subscriber.selectors, props);
           subscription.next(subscriber);
         },
-        complete() {
+        complete(reason) {
           if (subscription.complete) {
-            subscription.complete();
-          }
-          if (subscription.cancel) {
-            subscription.cancel();
+            subscription.complete(reason, subscriber);
           }
         },
       }),
