@@ -1,0 +1,27 @@
+{
+  "title": "State Modules",
+
+  "browsers": true,
+
+  "badges": {
+    "list": [
+      "npmversion",
+      "npmdownloads",
+      "daviddm",
+      "travisci",
+      "coveralls",
+      "paypal",
+      "githubfollow",
+      "hackernewssubmit",
+      "redditsubmit",
+      "twittertweet",
+      "githubstar"
+    ],
+    "config": {
+      "paypalURL": "https://paypal.me/bradynapier",
+      "githubUsername": "bradennapier",
+      "githubSlug": "state-modules",
+      "twitterUsername": "odo_exchange"
+    }
+  }
+}

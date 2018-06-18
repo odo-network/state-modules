@@ -1,8 +1,7 @@
-# State Modules
+<!-- TITLE -->
+<!-- BADGES -->
 
-[![Build Status](https://travis-ci.com/odo-network/state-modules.svg?branch=master)](https://travis-ci.com/odo-network/state-modules)
 [![Known Vulnerabilities](https://snyk.io/test/github/odo-network/state-modules/badge.svg?targetFile=package.json)](https://snyk.io/test/github/odo-network/state-modules?targetFile=package.json)
-[![Coveralls github](https://img.shields.io/coveralls/github/jekyll/jekyll.svg)](https://github.com/odo-network/state-modules)
 
 State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and [`immuta`](https://www.github.com/odo-network/immuta) (which in-turn is inspired by `immer`).
 
