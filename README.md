@@ -1,5 +1,21 @@
-<!-- TITLE -->
-<!-- BADGES -->
+<!-- TITLE/ -->
+
+<h1>State Modules</h1>
+
+<!-- /TITLE -->
+
+
+<!-- BADGES/ -->
+
+<span class="badge-npmversion"><a href="https://npmjs.org/package/state-modules" title="View this project on NPM"><img src="https://img.shields.io/npm/v/state-modules.svg" alt="NPM version" /></a></span>
+<span class="badge-npmdownloads"><a href="https://npmjs.org/package/state-modules" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/state-modules.svg" alt="NPM downloads" /></a></span>
+<span class="badge-daviddm"><a href="https://david-dm.org/odo-network/state-modules" title="View the status of this project's dependencies on DavidDM"><img src="https://img.shields.io/david/odo-network/state-modules.svg" alt="Dependency Status" /></a></span>
+<span class="badge-travisci"><a href="http://travis-ci.org/odo-network/state-modules" title="Check this project's build status on TravisCI"><img src="https://img.shields.io/travis/odo-network/state-modules/master.svg" alt="Travis CI Build Status" /></a></span>
+<span class="badge-coveralls"><a href="https://coveralls.io/r/odo-network/state-modules" title="View this project's coverage on Coveralls"><img src="https://img.shields.io/coveralls/odo-network/state-modules.svg" alt="Coveralls Coverage Status" /></a></span>
+<span class="badge-paypal"><a href="https://paypal.me/bradynapier" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal donate button" /></a></span>
+
+<!-- /BADGES -->
+
 
 [![Known Vulnerabilities](https://snyk.io/test/github/odo-network/state-modules/badge.svg?targetFile=package.json)](https://snyk.io/test/github/odo-network/state-modules?targetFile=package.json)
 
