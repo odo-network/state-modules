@@ -8,7 +8,6 @@
       "npmversion",
       "npmdownloads",
       "daviddm",
-      "travisci",
       "coveralls",
       "hackernewssubmit",
       "redditsubmit",
@@ -17,7 +16,7 @@
       "githubstar"
     ],
     "config": {
-      "paypalURL": "https://paypal.me/bradynapier",
+      "npmPackageName": "state-modules",
       "githubUsername": "bradennapier",
       "githubSlug": "odo-network/state-modules",
       "twitterUsername": "odo_exchange"
