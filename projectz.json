@@ -10,11 +10,10 @@
       "daviddm",
       "travisci",
       "coveralls",
-      "paypal",
-      "githubfollow",
       "hackernewssubmit",
       "redditsubmit",
       "twittertweet",
+      "githubfollow",
       "githubstar"
     ],
     "config": {
