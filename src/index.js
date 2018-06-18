@@ -112,7 +112,7 @@ class StateModule {
     this.mid = config.mid;
     descriptor.config = config;
     descriptor.hooks = hooks;
-    descriptor.context = {
+    descriptor.context = Object.freeze({
       config,
       get components() {
         return Array.from(descriptor.components.keys());
@@ -134,7 +134,7 @@ class StateModule {
       },
       select: action.select.bind(descriptor),
       dispatch: this.dispatch,
-    };
+    });
   }
 
   /**
@@ -149,6 +149,10 @@ class StateModule {
    */
   get actions() {
     return { ...this.#descriptor.actions };
+  }
+
+  get context() {
+    return this.#descriptor.context;
   }
 
   /**
@@ -212,7 +216,7 @@ class StateModule {
         .then(() => {
           descriptor.queue.creates.delete(response);
           if (descriptor.queue.resolves.size > 0 && descriptor.queue.creates.size === 0) {
-            descriptor.queue.resolves.forEach(p => p.resolve());
+            descriptor.queue.resolves.forEach(p => p.resolve(1));
             descriptor.queue.resolves.clear();
           }
         })
@@ -252,7 +256,7 @@ class StateModule {
         .then(() => {
           descriptor.queue.creates.delete(promise);
           if (descriptor.queue.creates.size === 0 && descriptor.queue.resolves.size > 0) {
-            descriptor.queue.resolves.forEach(p => p.resolve());
+            descriptor.queue.resolves.forEach(p => p.resolve(1));
             descriptor.queue.resolves.clear();
           }
         })
@@ -308,7 +312,7 @@ class StateModule {
     new Promise((resolve, reject) => {
       const descriptor = this.#descriptor;
       if (!descriptor.queue || descriptor.queue.creates.size === 0) {
-        return resolve();
+        return resolve(0);
       }
       descriptor.queue.resolves.add({ resolve, reject });
     });

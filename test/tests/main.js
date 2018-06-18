@@ -38,6 +38,11 @@ export function getStateModule() {
         lastChanged: 0,
       },
     },
+    helpers: {
+      myHelper() {
+        // empty
+      },
+    },
     reducers: {
       SET({ to }, draft) {
         if (to !== this.state.counter.value) {
@@ -96,6 +101,7 @@ describe('state module has public api methods expected', () => {
   it('has state.component', () => expect(state.compose).to.be.a('function'));
   it('has state.select', () => expect(state.select).to.be.a('function'));
   it('has state.resolve', () => expect(state.resolve).to.be.a('function'));
+  it('has helpers in context', () => expect(state.context.helpers).to.be.a('object'));
 });
 
 describe('dispatch hooks 2', () => {

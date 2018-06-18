@@ -165,7 +165,6 @@ function loadAsynchronousComponentProperties(descriptor, component) {
 }
 
 async function loadComponentScope(descriptor, component) {
-  if (!component.scope) return;
   if (!descriptor.scope) {
     descriptor.scope = {};
   }
