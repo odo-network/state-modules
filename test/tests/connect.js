@@ -13,6 +13,7 @@ function simpleConnector(subscriber, actions) {
       next(val) {
         console.log('Simple Connect NEXT: ', val.state);
       },
+      complete() {},
     });
     return {
       ...WrappedComponent,
