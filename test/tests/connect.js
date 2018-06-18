@@ -154,6 +154,15 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
       expect(subscriber.merger).to.be.a('function');
       expect(subscriber.selectors.counter).to.equal('counter');
       expect(subscriber.selectors).to.have.property(STATE_SELECTOR);
+
+      expect(actions.getSelectorState()).to.deep.equal({
+        counter: {
+          value: 0,
+          created,
+          lastChanged: 0,
+        },
+      });
+
       return WrappedComponent => {
         let complete = false;
         const subscription = actions.subscribe(
