@@ -16,9 +16,7 @@
     "build:babel": "cross-env NODE_ENV=production babel -d dist src",
     "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
     "test": "cross-env NODE_ENV=test nyc mocha --require @babel/register --recursive ./test/tests/*.js",
-    "coverage": "cross-env NODE_ENV=test nyc yarn test && nyc report --reporter=html --reporter=text-lcov | coveralls",
-    "compile": "projectz compile",
-    "posttest": "npm run compile"
+    "coverage": "cross-env NODE_ENV=test nyc yarn test && nyc report --reporter=html --reporter=text-lcov | coveralls"
   },
   "maintainers": [
     "Braden Napier (https://github.com/bradennapier)"

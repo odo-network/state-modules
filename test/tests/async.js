@@ -95,7 +95,7 @@ describe('[async] | Importing asynchronous scope', () => {
 
     let errors = 0;
     try {
-      await state.resolve();
+      await state.resolve().catch(e => (errors += 1));
     } catch (e) {
       errors += 1;
     }

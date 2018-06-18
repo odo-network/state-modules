@@ -1,22 +1,10 @@
-<!-- TITLE/ -->
+# State Modules
 
-<h1>State Modules</h1>
-
-<!-- /TITLE -->
-
-
-<!-- BADGES/ -->
-
-<span class="badge-npmversion"><a href="https://npmjs.org/package/state-modules" title="View this project on NPM"><img src="https://img.shields.io/npm/v/state-modules.svg" alt="NPM version" /></a></span>
-<span class="badge-npmdownloads"><a href="https://npmjs.org/package/state-modules" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/state-modules.svg" alt="NPM downloads" /></a></span>
-<span class="badge-daviddm"><a href="https://david-dm.org/odo-network/state-modules" title="View the status of this project's dependencies on DavidDM"><img src="https://img.shields.io/david/odo-network/state-modules.svg" alt="Dependency Status" /></a></span>
-<span class="badge-coveralls"><a href="https://coveralls.io/r/odo-network/state-modules" title="View this project's coverage on Coveralls"><img src="https://img.shields.io/coveralls/odo-network/state-modules.svg" alt="Coveralls Coverage Status" /></a></span>
-
-<!-- /BADGES -->
-
-
+[![npm](https://img.shields.io/npm/v/state-modules.svg)](https://github.com/odo-network/state-modules)
 [![Build Status](https://travis-ci.com/odo-network/state-modules.svg?branch=master)](https://travis-ci.com/odo-network/state-modules)
 [![Known Vulnerabilities](https://snyk.io/test/github/odo-network/state-modules/badge.svg?targetFile=package.json)](https://snyk.io/test/github/odo-network/state-modules?targetFile=package.json)
+[![Coveralls github](https://img.shields.io/coveralls/github/odo-network/state-modules.svg)](https://github.com/odo-network/state-modules)
+[![license](https://img.shields.io/github/license/odo-network/state-modules.svg)](https://github.com/odo-network/state-modules)
 
 State Modules provide a powerful mechanism for immutable state management which pulls inspiration from `redux`, `redux-saga`, `redux-saga-process`, and [`immuta`](https://www.github.com/odo-network/immuta) (which in-turn is inspired by `immer`).
 
