@@ -121,6 +121,7 @@ interface StateManager {
 
   get components(): Array<State$ComponentID>;
   get actions(): StateActionDispatchers;
+  get context(): State$Context
 
   select<R>(selector: string | string[] | (state: State) => R):  R
 
@@ -128,9 +129,7 @@ interface StateManager {
 
   dispatch(action: State$DispatchedAction): Promise<void | State$ChangedPaths>;
 
-  subscribeToSelector(): State$Subscription
-
-  subscribeToAction(): State$Subscription;
+  subscribe<TO>(to: TO, condition: State$Condition<TO>, once?: boolean): State$Subscription;
 
   connect(
     withState: StateConnectState,
