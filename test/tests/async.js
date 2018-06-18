@@ -89,4 +89,16 @@ describe('[async] | Importing asynchronous scope', () => {
 
     expect(flag).to.be.equal(0);
   });
+
+  it('rejects if the scope is invalid', async () => {
+    const state = getStateModule(undefined, 'myScope', () => import('./some_invalid_file'));
+
+    let errors = 0;
+    try {
+      await state.resolve();
+    } catch (e) {
+      errors += 1;
+    }
+    expect(errors).to.be.equal(1);
+  });
 });
