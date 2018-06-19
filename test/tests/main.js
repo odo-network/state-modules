@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { performance } from 'perf_hooks';
-import State, { defaultMerger } from '../../src';
+import State from '../../src';
 
 const hooksRan = new Set();
 
@@ -47,8 +47,8 @@ export function getStateModule() {
       SET({ to }, draft) {
         if (to !== this.state.counter.value) {
           draft.counter.lastChanged = performance.now();
+          draft.counter.value = to;
         }
-        draft.counter.value = to;
       },
       INCREMENT({ by = 1 }, draft) {
         draft.counter.value += by;
@@ -58,8 +58,8 @@ export function getStateModule() {
     actions: {
       increment: ['by'],
       counter: {
-        set: ['to'],
         increment: ['by'],
+        set: ['to'],
       },
     },
     selectors: {
@@ -197,13 +197,6 @@ describe('ignore prop never dispatches due to hook override', () => {
     expect(state.actions.increment(10, { ignore: true })).to.be.equal(undefined);
 
     expect(state.actions.increment(10)).to.include('counter.value');
-  });
-});
-
-describe('utility functions work as expected', () => {
-  it('should have defaultMerger that returns itself', () => {
-    const obj = { a: 1 };
-    expect(defaultMerger(obj)).to.be.equal(obj);
   });
 });
 

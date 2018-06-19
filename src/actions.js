@@ -120,7 +120,7 @@ export function dispatch(descriptor, _action) {
     if (descriptor.reducers.has(action.type)) {
       changedValues = handle.routeAction(descriptor, action);
     }
-    if (descriptor.routes.has(action.type)) {
+    if (descriptor.effects && descriptor.effects.has(action.type)) {
       // await handle.asyncRoutes(priv, action);
       // experiment to see effect of asynchronous effects not being awaited
       // (hoping to make action dispatch fully synchronous)

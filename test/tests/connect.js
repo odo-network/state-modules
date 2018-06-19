@@ -151,8 +151,6 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
       expect(subscriber).to.have.property('dispatchers');
       expect(subscriber.dispatchers.increment).to.be.a('function');
       expect(subscriber).to.have.property('selectors');
-      expect(subscriber).to.have.property('merger');
-      expect(subscriber.merger).to.be.a('function');
       expect(subscriber.selectors.counter).to.equal('counter');
       expect(subscriber.selectors).to.have.property(STATE_SELECTOR);
 
@@ -172,7 +170,7 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
               if (complete) {
                 throw new Error('Connector Should have cancelled after the first run! in state.connect subscribe() works as expected');
               }
-              if (s.state.counter.value === 1) {
+              if (s.counter.value === 1) {
                 complete = true;
               }
             },
