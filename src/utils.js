@@ -191,9 +191,9 @@ function actionSubscriptionHandler(actions, descriptor, condition, once) {
 
   // A cleanup function which will cancel the event stream
   let cancel = reason => {
+    cancel = noop;
     unsubscribeHandlerFromPath(descriptor.subscribers.actions, handler, condition);
     actions.complete(reason);
-    cancel = noop;
   };
 
   // we need to define a handleCancel function so that we call the
@@ -234,6 +234,7 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
   };
 
   let cancel = reason => {
+    cancel = noop;
     unsubscribeFromSelector(descriptor.subscribers.updates, dynamicMap, selector, handler);
     if (hasDynamicSelectors) {
       props = undefined;
@@ -241,7 +242,6 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
       dynamicRefCounts = undefined;
     }
     actions.complete(reason);
-    cancel = noop;
   };
 
   // we need to define a handleCancel function so that we call the
