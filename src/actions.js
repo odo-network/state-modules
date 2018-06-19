@@ -37,13 +37,23 @@ function iterateActionSubscribers(action, subscribers) {
   });
 }
 
+let updateID = 0;
+
 class MemoizedUpdateActions {
   #memoized = new Map();
   #context;
+
+  // eslint-disable-next-line
+  updateID = updateID++;
+
   constructor(context) {
     this.#context = context;
   }
+
   getState = (selectors, props) =>
+    // since the top-level selector will be different for every component, we instead
+    // iterate the children of the top-level selector so that any identical selectors
+    // requested for each state update can be memoized properly.
     Object.keys(selectors).reduce((p, c) => {
       const selector = selectors[c];
       if (typeof selector === 'object' && selector[STATE_SELECTOR].dynamic) {

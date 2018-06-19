@@ -1,20 +1,20 @@
 {
   "name": "state-modules",
   "description": "A lightweight immutable state management library",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": "Braden R. Napier",
   "private": false,
   "public": true,
   "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "npm-run-all flow:flow-typed",
+    "prepare": "npm-run-all flow:flow-typed",
     "prepublishOnly": "npm-run-all test build",
     "flow:flow-typed": "rimraf flow-typed/npm && flow-typed install --overwrite || true",
     "build": "rimraf dist && npm-run-all -p build:*",
     "build:flow": "flow-copy-source src dist",
     "build:babel": "cross-env NODE_ENV=production babel -d dist src",
-    "try": "cross-env NODE_ENV=development babel-node ./quick-test.js",
+    "try": "cross-env NODE_ENV=development babel-node ./test/quick-test.js",
     "test": "cross-env NODE_ENV=test nyc mocha --require @babel/register --recursive ./test/tests/*.js",
     "coverage": "cross-env NODE_ENV=test nyc yarn test && nyc report --reporter=html --reporter=text-lcov | coveralls"
   },
@@ -38,7 +38,10 @@
     "components"
   ],
   "files": [
-    "dist/"
+    "dist/",
+    ".flowconfig",
+    ".nvmrc",
+    ".babelrc"
   ],
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.51",

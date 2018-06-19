@@ -114,25 +114,23 @@ function handleBuildHelpers(descriptor, component) {
   }
 }
 
-function handleBuildRoutes(descriptor, component) {
-  if (!component.effects && Object.keys(component.routes).length > 0) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
-      component.config.cid
-    } | Defined routes but no matching effects exist.`);
+function handleBuildEffects(descriptor, component) {
+  if (!descriptor.effects) {
+    descriptor.effects = new Map();
   }
   /* Routes define all the sagas to execute when a given type executes */
-  for (const _type in component.routes) {
-    if (Object.prototype.hasOwnProperty.call(component.routes, _type)) {
+  for (const _type in component.effects) {
+    if (Object.prototype.hasOwnProperty.call(component.effects, _type)) {
       const type = `${component.config.prefix}${toSnakeCase(_type)}`;
-      const set = descriptor.routes.get(type) || new Set();
-      const effect = component.effects[component.routes[_type]];
+      const set = descriptor.effects.get(type) || new Set();
+      const effect = component.effects[_type];
       if (typeof effect !== 'function') {
         throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
           component.config.cid
         } | Route ${_type} defined in routes but no matching effect exists.`);
       }
       set.add(effect);
-      descriptor.routes.set(type, set);
+      descriptor.effects.set(type, set);
     }
   }
 }
@@ -156,8 +154,8 @@ function loadSynchronousComponentProperties(descriptor, component) {
 }
 
 function loadAsynchronousComponentProperties(descriptor, component) {
-  if (component.routes) {
-    handleBuildRoutes(descriptor, component);
+  if (component.effects) {
+    handleBuildEffects(descriptor, component);
   }
   if (component.hooks && component.hooks.loads) {
     component.hooks.loads();

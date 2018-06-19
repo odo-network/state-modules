@@ -185,7 +185,7 @@ function actionSubscriptionHandler(actions, descriptor, condition, once) {
   const handler = action => {
     actions.next(action, descriptor.context);
     if (once) {
-      cancel('once');
+      handleCancel('once');
     }
   };
 
@@ -196,12 +196,18 @@ function actionSubscriptionHandler(actions, descriptor, condition, once) {
     cancel = noop;
   };
 
+  // we need to define a handleCancel function so that we call the
+  // appropriate canceller if it is changed
+  function handleCancel(reason) {
+    return cancel(reason);
+  }
+
   subscribeHandlerToPath(descriptor.subscribers.actions, handler, condition);
 
   return {
     condition,
-    unsubscribe: cancel,
-    cancel,
+    unsubscribe: handleCancel,
+    cancel: handleCancel,
   };
 }
 
@@ -220,6 +226,13 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
 
   const hasDynamicSelectors = Boolean(selector[STATE_SELECTOR].dynamic);
 
+  const handler = memoizedActions => {
+    actions.next(memoizedActions, props, descriptor.context);
+    if (once) {
+      handleCancel('once');
+    }
+  };
+
   let cancel = reason => {
     unsubscribeFromSelector(descriptor.subscribers.updates, dynamicMap, selector, handler);
     if (hasDynamicSelectors) {
@@ -231,12 +244,11 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
     cancel = noop;
   };
 
-  const handler = memoizedActions => {
-    actions.next(memoizedActions, props, descriptor.context);
-    if (once) {
-      cancel('once');
-    }
-  };
+  // we need to define a handleCancel function so that we call the
+  // appropriate canceller if it is changed
+  function handleCancel(reason) {
+    return cancel(reason);
+  }
 
   // each of our children must be subscribed to - these are static values which
   // will live throughout the entire lifecycle of the component.
@@ -250,7 +262,8 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
     setSelectorProps: !hasDynamicSelectors
       ? noop
       : nextProps => {
-        if (nextProps === props) return;
+        let response = false;
+        if (nextProps === props) return response;
         props = nextProps;
         if (!dynamicMap) {
           dynamicMap = new Map();
@@ -268,6 +281,7 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
               // if our computedKey is the same as before then we do nothing
               return;
             }
+            response = true;
             dynamicRefCounts[prevPath] -= 1;
             if (dynamicRefCounts[prevPath] === 0) {
               // no conflict in dynamic for prevKey (multiple dynamic fns here dont subscribe to prevPath) - check if
@@ -277,6 +291,8 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
               }
               delete dynamicRefCounts[prevPath];
             }
+          } else {
+            response = true;
           }
           if (!dynamicRefCounts[computedPath]) {
             dynamicRefCounts[computedPath] = 1;
@@ -290,9 +306,10 @@ function selectorSubscriptionHandler(actions, descriptor, selector, once) {
           }
           dynamicMap.set(fn, computedPath);
         });
+        return response;
       },
-    unsubscribe: cancel,
-    cancel,
+    unsubscribe: handleCancel,
+    cancel: handleCancel,
   };
 }
 

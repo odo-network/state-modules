@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import { performance } from 'perf_hooks';
 import State from '../../src';
-import { createChildDescriptor } from 'immuta/dist/proxy';
 
 const created = performance.now();
 
