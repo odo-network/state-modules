@@ -36,7 +36,7 @@ export function routeAction(descriptor, action) {
     prevState,
     draftState => {
       descriptor.reducers.get(action.type).forEach((_, reducer) => {
-        reducer.call(descriptor.context, action, draftState);
+        reducer.call(descriptor.context, draftState, action);
       });
     },
     // Executed only when values are changed by the reducer calls above

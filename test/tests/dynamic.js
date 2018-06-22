@@ -45,7 +45,7 @@ export function getStateModule() {
       },
     },
     reducers: {
-      INCREMENT({ by = 1, counterID = 'default' }, draft) {
+      INCREMENT(draft, { by = 1, counterID = 'default' }) {
         if (!draft.counter[counterID]) {
           this.helpers.createCounter(draft, counterID);
         }

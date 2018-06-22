@@ -26,13 +26,13 @@ export function getStateModule(loadsOnAction, scopeID, scope) {
       },
     },
     reducers: {
-      SET({ to }, draft) {
+      SET(draft, { to }) {
         if (to !== this.state.counter.value) {
           draft.counter.lastChanged = performance.now();
         }
         draft.counter.value = to;
       },
-      INCREMENT({ by = 1 }, draft) {
+      INCREMENT(draft, { by = 1 }) {
         draft.counter.value += by;
         draft.counter.lastChanged = performance.now();
       },
@@ -95,7 +95,7 @@ describe('[async] | Importing asynchronous scope', () => {
 
     let errors = 0;
     try {
-      await state.resolve().catch(e => (errors += 1));
+      await state.resolve();
     } catch (e) {
       errors += 1;
     }

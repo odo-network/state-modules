@@ -56,13 +56,13 @@ export function getStateModule(connector) {
       },
     },
     reducers: {
-      SET({ to }, draft) {
+      SET(draft, { to }) {
         if (to !== this.state.counter.value) {
           draft.counter.lastChanged = performance.now();
         }
         draft.counter.value = to;
       },
-      INCREMENT({ by = 1 }, draft) {
+      INCREMENT(draft, { by = 1 }) {
         draft.counter.value += by;
         draft.counter.lastChanged = performance.now();
       },

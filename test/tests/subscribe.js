@@ -21,13 +21,13 @@ export function getStateModule() {
       },
     },
     reducers: {
-      SET({ to }, draft) {
+      SET(draft, { to }) {
         if (to !== this.state.counter.value) {
           draft.counter.lastChanged = performance.now();
           draft.counter.value = to;
         }
       },
-      INCREMENT({ by = 1 }, draft) {
+      INCREMENT(draft, { by = 1 }) {
         if (by !== 0) {
           draft.counter.lastChanged = performance.now();
           draft.counter.value += by;
