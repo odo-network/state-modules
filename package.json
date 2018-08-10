@@ -75,7 +75,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
-    "immuta": "^1.1.2",
+    "immuta": "^1.3.0",
     "to-redux-type": "^1.2.3"
   },
   "nyc": {

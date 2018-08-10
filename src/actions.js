@@ -2,10 +2,13 @@ import { MODULE_NAME, STATE_SELECTOR, emptyFrozenObject } from './context';
 import { getSelectedState, checkActionCondition } from './utils';
 import * as handle from './handlers';
 
-export function select(k, props = emptyFrozenObject) {
+export function select(k, props = emptyFrozenObject, state) {
   let path = k;
   if (typeof k === 'function') {
     return k(this.state, props);
+  }
+  if (k === state) {
+    return this.state;
   }
 
   if (!this.selectors) {
@@ -41,6 +44,7 @@ let updateID = 0;
 
 class MemoizedUpdateActions {
   #memoized = new Map();
+
   #context;
 
   // eslint-disable-next-line
@@ -51,9 +55,6 @@ class MemoizedUpdateActions {
   }
 
   getState = (selectors, props) =>
-    // since the top-level selector will be different for every component, we instead
-    // iterate the children of the top-level selector so that any identical selectors
-    // requested for each state update can be memoized properly.
     Object.keys(selectors).reduce((p, c) => {
       const selector = selectors[c];
       if (typeof selector === 'object' && selector[STATE_SELECTOR].dynamic) {
@@ -124,7 +125,7 @@ export function dispatch(descriptor, _action) {
       // await handle.asyncRoutes(priv, action);
       // experiment to see effect of asynchronous effects not being awaited
       // (hoping to make action dispatch fully synchronous)
-      handle.asyncRoutes(descriptor, action);
+      handle.asyncEffects(descriptor, action);
     }
     if (descriptor.hooks && descriptor.hooks.after) {
       handle.hook('after', descriptor, action, prevState, changedValues);

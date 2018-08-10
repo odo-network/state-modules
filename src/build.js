@@ -39,7 +39,8 @@ function handleBuildActions(descriptor, component, actions, _obj) {
       if (!Array.isArray(args) && typeof args === 'object') {
         obj[_type] = obj[_type] || {};
         return handleBuildActions(descriptor, component, args, obj[_type]);
-      } else if (obj[_type]) {
+      }
+      if (obj[_type]) {
         throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action ${
           component.config.cid
         }.${_type} already exists on the module.`);
@@ -186,7 +187,9 @@ export default function handleNewStateModule(descriptor, _component) {
 
   if (typeof component !== 'object') {
     return;
-  } else if (typeof component.config !== 'object' || !component.config.cid) {
+  }
+
+  if (typeof component.config !== 'object' || !component.config.cid) {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
       descriptor.config.mid
     } | Component didn't have a config or Component.config.cid was not defined`);
@@ -215,7 +218,9 @@ export default function handleNewStateModule(descriptor, _component) {
       },
     });
     return;
-  } else if (component.scope) {
+  }
+
+  if (component.scope) {
     return loadComponentScope(descriptor, component).then(() =>
       loadAsynchronousComponentProperties(descriptor, component));
   }

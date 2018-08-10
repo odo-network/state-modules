@@ -2647,9 +2647,9 @@ ignore@^3.3.3:
   version "3.3.8"
   resolved "https://registry.npmjs.org/ignore/-/ignore-3.3.8.tgz#3f8e9c35d38708a3a7e0e9abb6c73e7ee7707b2b"
 
-immuta@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.npmjs.org/immuta/-/immuta-1.1.2.tgz#077214560e1489b01475f138bb2d023f8730d067"
+immuta@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.npmjs.org/immuta/-/immuta-1.3.0.tgz#78254627267c92ce1717971544bd81db44dcbc02"
 
 imurmurhash@^0.1.4:
   version "0.1.4"

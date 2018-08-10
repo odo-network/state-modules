@@ -7,7 +7,7 @@ const hooksRan = new Set();
 
 const created = performance.now();
 
-function simpleConnector(subscriber, actions) {
+function simpleCustomConnector(subscriber, actions) {
   return WrappedComponent => {
     const subscription = actions.subscribe({
       next(val) {
@@ -89,7 +89,7 @@ export function getStateModule(connector) {
 }
 
 describe('[state.connect] | state.connect config connector', () => {
-  const state = getStateModule(simpleConnector);
+  const state = getStateModule(simpleCustomConnector);
   const connector = state.connect();
 
   it('uses the connector in config.connector if none is defined', () => {

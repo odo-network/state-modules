@@ -1,29 +1,29 @@
 import mutate from 'immuta';
 import { MODULE_NAME } from './context';
 
-const routePromises = new Set();
+const effectPromises = new Set();
 let lock = false;
 
 function handleLock(value) {
   lock = !!value;
 }
 
-export async function asyncRoutes(descriptor, action) {
-  const routes = descriptor.routes.get(action.type);
+export async function asyncEffects(descriptor, action) {
+  const effects = descriptor.effects.get(action.type);
 
-  for (const asyncReducer of routes) {
+  for (const asyncEffect of effects) {
     lock = false;
-    const promise = asyncReducer.call(descriptor.context, action, handleLock);
+    const promise = asyncEffect.call(descriptor.context, action, handleLock);
     if (lock) {
       await promise;
     } else {
-      routePromises.add(promise);
+      effectPromises.add(promise);
     }
   }
 
-  if (routePromises.size > 0) {
-    const pall = Promise.all(routePromises);
-    routePromises.clear();
+  if (effectPromises.size > 0) {
+    const pall = Promise.all(effectPromises);
+    effectPromises.clear();
     await pall;
   }
 }

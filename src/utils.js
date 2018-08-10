@@ -1,36 +1,6 @@
 import { MODULE_NAME, STATE_SELECTOR, emptyFrozenObject, noop } from './context';
 import createSubscriber from './subscriber';
 
-// Used for automatic id assignment of state modules.
-let i = 0;
-
-export function parseModuleSettings(_settings) {
-  const settings = { ..._settings };
-  // Check to see if a module id (mid) is provided in the "config" property and auto create one if not
-  settings.config = Object.assign({}, settings.config);
-  if (!settings.config.mid) {
-    i += 1;
-    settings.config.mid = `state-module-${i}`;
-  }
-  // Check if hooks are defined, if they are remove them if they do not contain at least a single entry
-  // Also allows hooks to return any value other than function to indicate they should not be included.
-  // Empty hooks after parsing end up being removed all together.
-  if (settings.hooks) {
-    settings.hooks = Object.assign({}, settings.hooks);
-    for (const hook in settings.hooks) {
-      if (Object.prototype.hasOwnProperty.call(settings.hooks, hook)) {
-        if (Array.isArray(settings.hooks[hook]) || settings.hooks[hook] instanceof Set) {
-          settings.hooks[hook] = Array.from(settings.hooks[hook]).filter(h => typeof h === 'function');
-          if (settings.hooks[hook].length === 0) {
-            delete settings.hooks[hook];
-          }
-        }
-      }
-    }
-  }
-  return settings;
-}
-
 function collisionError(key, value, descriptor, module) {
   return `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
     module.config.cid
@@ -64,6 +34,7 @@ export function merge(obj, withObj, descriptor, module) {
         }
         merge(obj[key], value, descriptor, module);
       } else {
+        // console.log('Merge ', key, ' into: ', obj);
         obj[key] = value;
       }
     });
@@ -79,6 +50,9 @@ function addDynamicToAncestor(ancestor, fn) {
 
 export function buildSelectors(descriptor, component, selectors, _ancestors) {
   if (typeof selectors === 'object' && selectors[STATE_SELECTOR]) {
+    if (!_ancestors) {
+      return selectors;
+    }
     // handle nested but pre-build selectors
     _ancestors.forEach(ancestor => {
       selectors[STATE_SELECTOR].children.forEach(child => {
@@ -91,16 +65,19 @@ export function buildSelectors(descriptor, component, selectors, _ancestors) {
       }
     });
     return selectors;
-  } else if (typeof selectors === 'function') {
+  }
+  if (typeof selectors === 'function') {
     _ancestors.forEach(ancestor => {
       addDynamicToAncestor(ancestor, selectors);
     });
     return selectors;
-  } else if (Array.isArray(selectors) || typeof selectors === 'string') {
+  }
+  if (Array.isArray(selectors) || typeof selectors === 'string') {
     const path = Array.isArray(selectors) ? selectors.join('.') : selectors;
     _ancestors.forEach(ancestor => ancestor.children.add(path));
     return path;
-  } else if (!selectors || typeof selectors !== 'object') {
+  }
+  if (!selectors || typeof selectors !== 'object') {
     throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} ${
       component ? `| Component ${component.config.cid} |` : ''
     } state selector must be string or plain object but got ${String(selectors)}`);

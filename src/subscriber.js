@@ -6,11 +6,14 @@ import { noop } from './context';
  */
 export class Subscriber {
   #cb;
+
   #args;
+
   constructor(cb, args) {
     this.#cb = cb;
     this.#args = args;
   }
+
   subscribe = (subscription, ...args) => new Subscription(this.#cb, subscription, ...this.#args, ...args);
 }
 

@@ -18,18 +18,15 @@ createState(config: StateManagerConfig): StateManager
 
 ```javascript
 type StateManagerConfig = {|
-  config: {|
-    mid: StateModuleID
+  +config: {|
+    +mid: StateModuleID
   |},
   hooks?: {|
     before?: Iterable<BeforeHookFunction>,
     change?: Iterable<StateChangeHookFunction>,
     after?: Iterable<AfterHookFunction>,
     error?: Iterable<ErrorHookFunction>
-  |},
-  selectors?: {
-    [selectorID: string]: StateSelector
-  }
+  |}
 |};
 ```
 
@@ -37,16 +34,20 @@ type StateManagerConfig = {|
 
 ```javascript
 {
+  // required configuration with a given "module id"
   config: { mid: 'my-module' },
   // Hooks allow simple hooking into the lifecycle of the state
   hooks: {
      // Before action is dispatched, may return an action with new properties
     before: [action => console.group('DISPATCHING: ', action)],
+
     // Whenever the state changes, gets previous and next as well as an object
     // with only the changed values.
     change: [(action, prevState, changedValues) => console.log('State Changed: ', changedValues)],
+
     // After the dispatch has occurred.
     after: [() => console.groupEnd()],
+
     // Any error that occurs within the realm of the dispatch
     error: [e => console.error('Error: ', e)],
   },
@@ -57,7 +58,11 @@ type StateManagerConfig = {|
 
 #### Summary
 
-Before hooks are executed before a dispatched actions is handled by the `StateManager`. If a hook returns a `null` value, the dispatch will be cancelled. If a new action is returned, the new action will be used. If it returned nothing (or undefined), the original action will be dispatched.
+Before hooks are executed before a dispatched actions is handled by the `StateManager`. It allows controlling of the flow of the module as a whole in a few different ways:
+
+- If a hook returns a `null` value, the dispatch will be cancelled.
+- If an `object` is returned, it will dispatch the new object instead.
+- If it `undefined` is returned, the original action will be dispatched.
 
 #### Type Signature
 
@@ -108,7 +113,10 @@ Error hooks are executed if an error occurs during the processing of a dispatch.
 #### Type Signature
 
 ```javascript
-type ErrorHookFunction = (action: StateDispatchedAction, error: Error) => any;
+type ErrorHookFunction = (
+  action: StateDispatchedAction,
+  error: Error
+) => any;
 ```
 
 ### interface `StateManager`
