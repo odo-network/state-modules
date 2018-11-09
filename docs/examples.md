@@ -86,6 +86,81 @@
 }
 ```
 
+## Example: react-native
+
+```javascript
+/* @flow */
+import Orientation from "react-native-orientation";
+import { Dimensions } from "react-native";
+
+let state;
+let listenerID;
+
+type Orientation$Raw =
+  | "PORTRAIT"
+  | "LANDSCAPE"
+  | "PORTRAITUPSIDEDOWN"
+  | "UNKNOWN";
+
+function parseOrientation(orientation: Orientation$Raw) {
+  switch (orientation) {
+    case "PORTRAIT":
+    case "PORTRAITUPSIDEDOWN": {
+      return "portrait";
+    }
+    case "LANDSCAPE": {
+      return "landscape";
+    }
+    default: {
+      return "unknown";
+    }
+  }
+}
+
+const component = {
+  config: { cid: "screen" },
+  state: {
+    screen: {
+      orientation: parseOrientation(Orientation.getInitialOrientation()),
+      dimensions: Dimensions.get("screen")
+    }
+  },
+  actions: {
+    screenOrientation: ["orientation", "dimensions"]
+  },
+  reducers: {
+    screenOrientation(draft, { orientation, dimensions }) {
+      draft.screen.orientation = orientation;
+      draft.screen.dimensions = dimensions;
+    }
+  },
+  selectors: {
+    screenOrientation: "screen.orientation",
+    screenDimensions: "screen.dimensions",
+    screen: "screen"
+  }
+};
+
+function startOrientationListener() {
+  Orientation.addOrientationListener(orientation => {
+    const parsed = parseOrientation(orientation);
+    if (parsed !== "unknown") {
+      state.actions.screenOrientation(parsed, Dimensions.get("screen"));
+    }
+  });
+  const parsed = parseOrientation(Orientation.getInitialOrientation());
+  state.actions.screenOrientation(parsed, Dimensions.get("screen"));
+}
+
+export function build(_state) {
+  state = _state;
+  state.component(component);
+  if (!listenerID) {
+    startOrientationListener();
+  }
+}
+```
+
 ## Example: state-modules
 
 Example below is incomplete
