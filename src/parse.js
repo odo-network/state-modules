@@ -19,13 +19,11 @@ export function moduleSettings(_settings) {
   // Empty hooks after parsing end up being removed all together.
   if (settings.hooks) {
     settings.hooks = Object.assign({}, settings.hooks);
-    for (const hook in settings.hooks) {
-      if (Object.prototype.hasOwnProperty.call(settings.hooks, hook)) {
-        if (Array.isArray(settings.hooks[hook]) || settings.hooks[hook] instanceof Set) {
-          settings.hooks[hook] = Array.from(settings.hooks[hook]).filter(h => typeof h === 'function');
-          if (settings.hooks[hook].length === 0) {
-            delete settings.hooks[hook];
-          }
+    for (const hook of Object.keys(settings.hooks)) {
+      if (Array.isArray(settings.hooks[hook]) || settings.hooks[hook] instanceof Set) {
+        settings.hooks[hook] = Array.from(settings.hooks[hook]).filter(h => typeof h === 'function');
+        if (settings.hooks[hook].length === 0) {
+          delete settings.hooks[hook];
         }
       }
     }

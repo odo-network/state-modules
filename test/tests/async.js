@@ -91,10 +91,10 @@ describe('[async] | Importing asynchronous scope', () => {
   });
 
   it('rejects if the scope is invalid', async () => {
-    const state = getStateModule(undefined, 'myScope', () => import('./some_invalid_file'));
-
     let errors = 0;
     try {
+      const state = getStateModule(undefined, 'myScope', () => import('./some_invalid_file'));
+
       await state.resolve();
     } catch (e) {
       errors += 1;

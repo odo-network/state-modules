@@ -90,11 +90,13 @@ export function getStateModule(connector) {
 
 describe('[state.connect] | state.connect config connector', () => {
   const state = getStateModule(simpleCustomConnector);
-  const connector = state.connect();
+  const connector = state.createConnector();
 
   it('uses the connector in config.connector if none is defined', () => {
     expect(connector).to.be.a('function');
-    expect(connector.length).to.be.equal(3);
+    expect(connector.length).to.be.equal(2);
+    // TODO : Need to expand this as its not covering
+    // TODO : what it is meant to cover.
   });
 
   it('creates a connection when called', () => {
@@ -136,9 +138,11 @@ describe('[state.connect] | state.connect expects connector provided', () => {
   });
 
   it('allows passing the connector as an argument to state.connect', () => {
-    const connector = state.connect(simpleConnector);
+    const connector = state.createConnector(simpleCustomConnector);
     expect(connector).to.be.a('function');
-    expect(connector.length).to.be.equal(3);
+    expect(connector.length).to.be.equal(2);
+    // TODO : Need to expand this as its not covering
+    // TODO : what it is meant to cover.
   });
 });
 
@@ -194,7 +198,7 @@ describe('[state.connect] | state.connect subscribe() works as expected', () => 
       },
     };
 
-    const connector = state.connect(testConnector);
+    const connector = state.createConnector(testConnector);
 
     const subscription = connector(
       selectors => ({

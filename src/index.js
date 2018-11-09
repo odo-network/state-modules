@@ -1,8 +1,9 @@
 import handleNewStateModule from './build';
-import { MODULE_NAME, StateManagers } from './context';
+import { MODULE_NAME } from './context';
 
 import { createConnection, defaultStateConnector } from './connect';
 
+import { forceMergeState } from './handlers';
 import * as action from './actions';
 import * as utils from './utils';
 import * as parse from './parse';
@@ -13,6 +14,10 @@ class StateModule {
    * if none is provided during instatiation.
    */
   mid;
+
+  #setup;
+
+  #prevState;
 
   /**
    * Our maangers descriptorate state which should not be revealed publicly.  This will hold the context
@@ -38,13 +43,20 @@ class StateModule {
     // queue: { creates: new Set(), resolves: new Set() }
   };
 
-  constructor({ config, hooks }) {
+  constructor(setup) {
+    this.#setup = setup;
+    const { config, hooks, scope } = setup;
     const descriptor = this.#descriptor;
     this.mid = config.mid;
     descriptor.config = config;
     descriptor.hooks = hooks;
+    if (typeof scope === 'object') {
+      descriptor.scope = scope;
+    }
     descriptor.context = Object.freeze({
-      config,
+      get config() {
+        return descriptor.config;
+      },
       get components() {
         return Array.from(descriptor.components.keys());
       },
@@ -91,6 +103,72 @@ class StateModule {
     return this.#descriptor.context;
   }
 
+  get scope() {
+    return this.#descriptor.scope;
+  }
+
+  reset = (setup = this.#setup) => {
+    if (this.#descriptor.subscribers) {
+      if (this.#descriptor.subscribers.actions.size) {
+        this.#descriptor.subscribers.actions.forEach(subscription => {
+          subscription.cancel();
+        });
+      }
+    }
+
+    this.#prevState = this.#descriptor.state;
+
+    Object.assign(this.#descriptor, {
+      config: setup.config,
+      hooks: undefined,
+      state: Object.create(null),
+      actions: Object.create(null),
+      helpers: Object.create(null),
+    });
+
+    this.#descriptor.reducers.clear();
+    this.#descriptor.components.clear();
+
+    if (this.#descriptor.selectors) {
+      delete this.#descriptor.selectors;
+    }
+    if (this.#descriptor.effects) {
+      this.#descriptor.effects.clear();
+    }
+    if (this.#descriptor.queue) {
+      delete this.#descriptor.queue;
+    }
+  };
+
+  /*
+    Rehydrates all subscribers to update their values.
+    Generally this will only be done when hot reloading
+    or resetting state modules.
+  */
+  rehydrate = () => {
+    /* We need to set the previous state back onto the
+       state so the reload is "hot".  This means that
+       updates to the default state in components may
+       not work as expected.  Fixing this would mean a
+       custom implementation of immuta's `mergeWithDraft`
+       which would need to determine what values were manually
+       changed on defaultState and override this function.
+
+       This seems like a huge perf drain.  For the most part
+       changing these values will always require a refresh.
+
+       Another option is to implement a versioning option which
+       would essentially identify a component as dirty and force
+       use the new components values instead. */
+    if (this.#prevState) {
+      forceMergeState(this.#descriptor, this.#prevState);
+      this.#prevState = undefined;
+    }
+    if (this.#descriptor.subscribers && this.#descriptor.subscribers.updates.size) {
+      action.runAllUpdateSubscribers(this.#descriptor.context, this.#descriptor.subscribers);
+    }
+  };
+
   /**
    * Dispatches an action to be handled by the components within the State Module.
    * @param {Object} action
@@ -104,6 +182,13 @@ class StateModule {
    * @param {string | (selectors) => selector} key Which selector should be called
    */
   select = (k, props) => this.#descriptor.context.select(k, props, this);
+
+  addScope = scope => {
+    if (!this.#descriptor.scope) {
+      this.#descriptor.scope = {};
+    }
+    Object.assign(this.#descriptor.scope, scope);
+  };
 
   createConnector = (connector = this.#descriptor.config.connector || defaultStateConnector) => {
     if (typeof connector !== 'function') {
@@ -146,9 +231,9 @@ class StateModule {
    * the promise so that `state.resolve()` returns a Promise guaranteeing it is resolved before
    * resolving.
    */
-  component = component => {
+  component = (component, ...args) => {
     const descriptor = this.#descriptor;
-    const response = handleNewStateModule(descriptor, component);
+    const response = handleNewStateModule(descriptor, component, args);
     if (response && response.then) {
       if (!descriptor.queue) {
         descriptor.queue = {
@@ -169,7 +254,6 @@ class StateModule {
           descriptor.queue.creates.delete(response);
           descriptor.queue.resolves.forEach(p => p.reject(e));
           descriptor.queue.resolves.clear();
-          throw e;
         });
     }
     return this;
@@ -209,7 +293,6 @@ class StateModule {
           descriptor.queue.creates.delete(promise);
           descriptor.queue.resolves.forEach(p => p.reject(e));
           descriptor.queue.resolves.clear();
-          throw e;
         });
       descriptor.queue.creates.add(promise);
     }
@@ -253,6 +336,12 @@ class StateModule {
     }
   };
 
+  print = () => {
+    console.group('--- state-modules data ---');
+    // console.log('Descriptor: ', this.#descriptor);
+    console.groupEnd();
+  };
+
   resolve = () =>
     new Promise((resolve, reject) => {
       const descriptor = this.#descriptor;
@@ -265,17 +354,17 @@ class StateModule {
 
 export default function createStateModule(stateProps = {}) {
   const settings = parse.moduleSettings(stateProps);
-  if (StateManagers.has(settings.config.mid)) {
-    if (module && Object.prototype.hasOwnProperty.call(module, 'hot')) {
-      // hot reloading
-    } else {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ID ${
-        settings.config.mid
-      } already exists.If you wanted to modify an existing module, use state.configure instead.`);
-    }
-  }
+  // if (StateManagers.has(settings.config.mid)) {
+  //   if (module && Object.prototype.hasOwnProperty.call(module, 'hot')) {
+  //     // hot reloading
+  //   } else {
+  //     throw new Error(`[${MODULE_NAME}] | ERROR | Module ID ${
+  //       settings.config.mid
+  //     } already exists.  If you wanted to modify an existing module, use state.configure instead.`);
+  //   }
+  // }
   const manager = new StateModule(settings);
-  StateManagers.set(settings.config.mid, [manager, stateProps, settings]);
+  // StateManagers.set(settings.config.mid, [manager, stateProps, settings]);
 
   return manager;
 }

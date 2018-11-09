@@ -92,10 +92,8 @@ export function buildSelectors(descriptor, component, selectors, _ancestors) {
   const selector = { [STATE_SELECTOR]: meta, ...selectors };
 
   // we need to prepare the selector by parsing and discovering all child paths of state it selects
-  for (const selectorID in selector) {
-    if (Object.prototype.hasOwnProperty.call(selector, selectorID)) {
-      selector[selectorID] = buildSelectors(descriptor, component, selector[selectorID], ancestors);
-    }
+  for (const selectorID of Object.keys(selector)) {
+    selector[selectorID] = buildSelectors(descriptor, component, selector[selectorID], ancestors);
   }
 
   return selector;
@@ -118,10 +116,8 @@ export function getSelectedState(state, selected, props = emptyFrozenObject) {
     return selected.reduce((p, c) => (p ? p[c] : p), state);
   }
   const result = {};
-  for (const selectedProperty in selected) {
-    if (Object.prototype.hasOwnProperty.call(selected, selectedProperty)) {
-      result[selectedProperty] = getSelectedState(state, selected[selectedProperty], props);
-    }
+  for (const selectedProperty of Object.keys(selected)) {
+    result[selectedProperty] = getSelectedState(state, selected[selectedProperty], props);
   }
   return result;
 }

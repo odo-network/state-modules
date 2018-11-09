@@ -81,7 +81,6 @@ export function createConnectSubscription(descriptor, subscriber) {
  * @param {*} _connector
  */
 export function createConnection(descriptor, withSelectors, withDispatchers, connector) {
-  // console.log(data);
   if (withSelectors.length <= 1) {
     // do something?
   } else {

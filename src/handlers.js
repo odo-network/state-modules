@@ -1,4 +1,4 @@
-import mutate from 'immuta';
+import mutate, { mergeWithDraft } from 'immuta';
 import { MODULE_NAME } from './context';
 
 const effectPromises = new Set();
@@ -11,7 +11,7 @@ function handleLock(value) {
 export async function asyncEffects(descriptor, action) {
   const effects = descriptor.effects.get(action.type);
 
-  for (const asyncEffect of effects) {
+  for (const [, asyncEffect] of effects) {
     lock = false;
     const promise = asyncEffect.call(descriptor.context, action, handleLock);
     if (lock) {
@@ -28,6 +28,19 @@ export async function asyncEffects(descriptor, action) {
   }
 }
 
+export function forceMergeState(descriptor, state) {
+  mutate(
+    descriptor.state,
+    draft => {
+      mergeWithDraft(draft, state);
+    },
+    (nextState, changedMap) => {
+      console.log('State Changes! ', changedMap);
+      descriptor.state = nextState;
+    },
+  );
+}
+
 export function routeAction(descriptor, action) {
   let changedValues;
   const prevState = descriptor.state;
@@ -35,8 +48,8 @@ export function routeAction(descriptor, action) {
   mutate(
     prevState,
     draftState => {
-      descriptor.reducers.get(action.type).forEach((_, reducer) => {
-        reducer.call(descriptor.context, draftState, action);
+      descriptor.reducers.get(action.type).forEach(reducer => {
+        reducer.call(descriptor.context, draftState, action, mergeWithDraft);
       });
     },
     // Executed only when values are changed by the reducer calls above
