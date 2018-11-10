@@ -1,7 +1,7 @@
 {
   "name": "state-modules",
   "description": "A lightweight immutable state management library",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "author": "Braden R. Napier",
   "public": true,
   "license": "MIT",
