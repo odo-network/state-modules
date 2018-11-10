@@ -18,10 +18,6 @@ State Modules use **ES6 Proxies** to capture mutations performed against a "draf
 yarn add state-modules
 ```
 
-## Flow Coverage
-
-When complete, this library will provide 100% Flow Coverage
-
 ## Documentation
 
 - [**Reference Documentation**](./docs/reference.md)
