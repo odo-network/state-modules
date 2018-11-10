@@ -34,8 +34,7 @@ export function forceMergeState(descriptor, state) {
     draft => {
       mergeWithDraft(draft, state);
     },
-    (nextState, changedMap) => {
-      console.log('State Changes! ', changedMap);
+    nextState => {
       descriptor.state = nextState;
     },
   );
