@@ -72,7 +72,8 @@ state.component({
 
 state.actions.increment(5);
 state.actions.decrement(1);
+state.actions.decrement();
 
 // get the selector 'counterValue' and return results
-const currentValue = state.select("counterValue"); // 4
+const currentValue = state.select("counterValue"); // 3
 ```
