@@ -27,34 +27,33 @@ export function createConnectSubscription(descriptor, subscriber) {
     /**
      * Starts the subscription and begins calling the callback whenever the connected selectors are modified in any way.
      */
-    subscribe: (childSubscription, once = false) =>
-      utils.subscribeToSelector(descriptor, subscriber.selectors, once).subscribe({
-        next(memoizedActions, props) {
-          // when we do not have dynamic selectors we can guarantee that all connected components will have the same state.  In this case
-          // we do not want to process the same selectors over and over.  Instead we are able to directly memoize the state based on the
-          // connected component so that any further handlers that are called can directly return that value instead.
-          if (!subscriber.dynamic) {
-            if (memoizedActions.updateID !== lastUpdateID) {
-              lastUpdateID = memoizedActions.updateID;
-              memoizedState = memoizedActions.getState(subscriber.selectors, props);
-            }
-            return childSubscription.next(memoizedState, memoizedActions.updateID);
+    subscribe: (childSubscription, once = false) => utils.subscribeToSelector(descriptor, subscriber.selectors, once).subscribe({
+      next(memoizedActions, props) {
+        // when we do not have dynamic selectors we can guarantee that all connected components will have the same state.  In this case
+        // we do not want to process the same selectors over and over.  Instead we are able to directly memoize the state based on the
+        // connected component so that any further handlers that are called can directly return that value instead.
+        if (!subscriber.dynamic) {
+          if (memoizedActions.updateID !== lastUpdateID) {
+            lastUpdateID = memoizedActions.updateID;
+            memoizedState = memoizedActions.getState(subscriber.selectors, props);
           }
-          // when we are using dynamic selectors the state will depend on the props of each subscriber at the time.  In this case we can only
-          // memoize globally using the memoizedActions send to us.  This will memoize based on identical selector calls made across components
-          // rather than for all instances of the same component.
-          return childSubscription.next(
-            memoizedActions.getState(subscriber.selectors, props),
-            memoizedActions.updateID,
-          );
-        },
-        complete(reason) {
-          memoizedState = undefined;
-          if (childSubscription.complete) {
-            childSubscription.complete(reason, subscriber);
-          }
-        },
-      }),
+          return childSubscription.next(memoizedState, memoizedActions.updateID);
+        }
+        // when we are using dynamic selectors the state will depend on the props of each subscriber at the time.  In this case we can only
+        // memoize globally using the memoizedActions send to us.  This will memoize based on identical selector calls made across components
+        // rather than for all instances of the same component.
+        return childSubscription.next(
+          memoizedActions.getState(subscriber.selectors, props),
+          memoizedActions.updateID,
+        );
+      },
+      complete(reason) {
+        memoizedState = undefined;
+        if (childSubscription.complete) {
+          childSubscription.complete(reason, subscriber);
+        }
+      },
+    }),
     /**
      * Allows retrieval of the state represented by the given selectors immediately after
      * connecting the component. This is generally used so that the default state that is
@@ -86,9 +85,11 @@ export function createConnection(descriptor, withSelectors, withDispatchers, con
   } else {
     // when the connector directly selects the state we can not optimize
     // the subscription and must provide the selected state every time
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      descriptor.config.mid
-    } | Second state selection argument (state) is not yet supported`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${
+        descriptor.config.mid
+      } | Second state selection argument (state) is not yet supported`,
+    );
   }
 
   const subscriber = {

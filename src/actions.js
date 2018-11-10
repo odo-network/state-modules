@@ -12,15 +12,19 @@ export function select(k, props = emptyFrozenObject, state) {
   }
 
   if (!this.selectors) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${this.config.mid} | does not have any pre-configured selectors`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${this.config.mid} | does not have any pre-configured selectors`,
+    );
   } else if (typeof k === 'string') {
     path = k.split('.');
   }
 
   if (!Array.isArray(path)) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      this.config.mid
-    } | state.select expects a function, string[], or string as an argument.`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${
+        this.config.mid
+      } | state.select expects a function, string[], or string as an argument.`,
+    );
   }
 
   const selected = path.reduce((p, c) => p[c], this.selectors);
@@ -54,20 +58,19 @@ class MemoizedUpdateActions {
     this.#context = context;
   }
 
-  getState = (selectors, props) =>
-    Object.keys(selectors).reduce((p, c) => {
-      const selector = selectors[c];
-      if (typeof selector === 'object' && selector[STATE_SELECTOR].dynamic) {
-        p[c] = getSelectedState(this.#context.state, selector, props);
-      } else if (this.#memoized.has(selector)) {
-        p[c] = this.#memoized.get(selector);
-      } else {
-        const value = getSelectedState(this.#context.state, selector, props);
-        this.#memoized.set(selector, value);
-        p[c] = value;
-      }
-      return p;
-    }, Object.create(null));
+  getState = (selectors, props) => Object.keys(selectors).reduce((p, c) => {
+    const selector = selectors[c];
+    if (typeof selector === 'object' && selector[STATE_SELECTOR].dynamic) {
+      p[c] = getSelectedState(this.#context.state, selector, props);
+    } else if (this.#memoized.has(selector)) {
+      p[c] = this.#memoized.get(selector);
+    } else {
+      const value = getSelectedState(this.#context.state, selector, props);
+      this.#memoized.set(selector, value);
+      p[c] = value;
+    }
+    return p;
+  }, Object.create(null));
 }
 
 function iterateUpdateSubscribers(context, subscribers, changedValues) {
@@ -100,15 +103,19 @@ export function runAllUpdateSubscribers(context, subscribers) {
 
 export function dispatch(descriptor, _action) {
   if (!_action) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Tried to dispatch an empty action`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Tried to dispatch an empty action`,
+    );
   } else if (
-    _action.type === undefined ||
-    _action.type === null ||
-    (typeof _action.type !== 'string' && typeof _action.type !== 'number' && typeof _action.type !== 'symbol')
+    _action.type === undefined
+    || _action.type === null
+    || (typeof _action.type !== 'string' && typeof _action.type !== 'number' && typeof _action.type !== 'symbol')
   ) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      descriptor.config.mid
-    } | Tried to dispatch an action without a type property expects { type: string | number | symbol, ... }`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${
+        descriptor.config.mid
+      } | Tried to dispatch an action without a type property expects { type: string | number | symbol, ... }`,
+    );
   }
 
   let action = { ..._action };

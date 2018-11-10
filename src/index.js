@@ -192,16 +192,17 @@ class StateModule {
 
   createConnector = (connector = this.#descriptor.config.connector || defaultStateConnector) => {
     if (typeof connector !== 'function') {
-      throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
-        this.#descriptor.config.mid
-      } | Expected a connector setup in state.config.connector or provided to state.connect().Connector should be a function.`);
-    }
-    return (withSelectors, withDispatchers) =>
-      this.connect(
-        withSelectors,
-        withDispatchers,
-        connector,
+      throw new TypeError(
+        `[${MODULE_NAME}] | ERROR | Module ${
+          this.#descriptor.config.mid
+        } | Expected a connector setup in state.config.connector or provided to state.connect().Connector should be a function.`,
       );
+    }
+    return (withSelectors, withDispatchers) => this.connect(
+      withSelectors,
+      withDispatchers,
+      connector,
+    );
   };
 
   /**
@@ -214,9 +215,11 @@ class StateModule {
     connector = this.#descriptor.config.connector || defaultStateConnector,
   ) => {
     if (typeof connector !== 'function') {
-      throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
-        this.#descriptor.config.mid
-      } | Expected a connector setup in state.config.connector or provided to state.connect().Connector should be a function.`);
+      throw new TypeError(
+        `[${MODULE_NAME}] | ERROR | Module ${
+          this.#descriptor.config.mid
+        } | Expected a connector setup in state.config.connector or provided to state.connect().Connector should be a function.`,
+      );
     }
     return createConnection(this.#descriptor, withSelectors, withDispatchers, connector);
   };
@@ -312,26 +315,27 @@ class StateModule {
           selectors: utils.buildSelectors(this.#descriptor, undefined, condition),
         };
         return {
-          subscribe: subscription =>
-            utils.subscribeToSelector(this.#descriptor, subscriber.selectors, once).subscribe({
-              next(actions, props) {
-                subscriber.state = actions.getState(subscriber.selectors, props);
-                if (subscription.next) {
-                  subscription.next(subscriber);
-                }
-              },
-              complete(reason) {
-                if (subscription.complete) {
-                  subscription.complete(reason);
-                }
-              },
-            }),
+          subscribe: subscription => utils.subscribeToSelector(this.#descriptor, subscriber.selectors, once).subscribe({
+            next(actions, props) {
+              subscriber.state = actions.getState(subscriber.selectors, props);
+              if (subscription.next) {
+                subscription.next(subscriber);
+              }
+            },
+            complete(reason) {
+              if (subscription.complete) {
+                subscription.complete(reason);
+              }
+            },
+          }),
         };
       }
       default: {
-        throw new TypeError(`[${MODULE_NAME}] | ERROR | Module ${
-          this.#descriptor.config.mid
-        } | Can not connect to module, no connector has been defined.`);
+        throw new TypeError(
+          `[${MODULE_NAME}] | ERROR | Module ${
+            this.#descriptor.config.mid
+          } | Can not connect to module, no connector has been defined.`,
+        );
       }
     }
   };
@@ -342,14 +346,13 @@ class StateModule {
     console.groupEnd();
   };
 
-  resolve = () =>
-    new Promise((resolve, reject) => {
-      const descriptor = this.#descriptor;
-      if (!descriptor.queue || descriptor.queue.creates.size === 0) {
-        return resolve(0);
-      }
-      descriptor.queue.resolves.add({ resolve, reject });
-    });
+  resolve = () => new Promise((resolve, reject) => {
+    const descriptor = this.#descriptor;
+    if (!descriptor.queue || descriptor.queue.creates.size === 0) {
+      return resolve(0);
+    }
+    descriptor.queue.resolves.add({ resolve, reject });
+  });
 }
 
 export default function createStateModule(stateProps = {}) {

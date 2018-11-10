@@ -1,4 +1,6 @@
-import { MODULE_NAME, STATE_SELECTOR, emptyFrozenObject, noop } from './context';
+import {
+  MODULE_NAME, STATE_SELECTOR, emptyFrozenObject, noop,
+} from './context';
 import createSubscriber from './subscriber';
 
 function collisionError(key, value, descriptor, module) {
@@ -25,10 +27,10 @@ export function merge(obj, withObj, descriptor, module) {
       const value = withObj[key];
       if (obj[key] || obj[key] === null || typeof obj[key] === 'boolean' || typeof obj[key] === 'number') {
         if (
-          typeof obj[key] !== 'object' ||
-          typeof value !== 'object' ||
-          Array.isArray(obj[key]) ||
-          Array.isArray(value)
+          typeof obj[key] !== 'object'
+          || typeof value !== 'object'
+          || Array.isArray(obj[key])
+          || Array.isArray(value)
         ) {
           throw new Error(collisionError(key, value, descriptor, module));
         }
@@ -78,9 +80,11 @@ export function buildSelectors(descriptor, component, selectors, _ancestors) {
     return path;
   }
   if (!selectors || typeof selectors !== 'object') {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} ${
-      component ? `| Component ${component.config.cid} |` : ''
-    } state selector must be string or plain object but got ${String(selectors)}`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} ${
+        component ? `| Component ${component.config.cid} |` : ''
+      } state selector must be string or plain object but got ${String(selectors)}`,
+    );
   }
 
   const meta = {
@@ -107,7 +111,11 @@ export function buildSelectors(descriptor, component, selectors, _ancestors) {
  */
 export function getSelectedState(state, selected, props = emptyFrozenObject) {
   if (!selected) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | getSelectedState | Received falsey value (${String(selected)}), expects string, array, function, or plain object.`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | getSelectedState | Received falsey value (${String(
+        selected,
+      )}), expects string, array, function, or plain object.`,
+    );
   } else if (typeof selected === 'function') {
     return getSelectedState(state, selected(props), props);
   } else if (typeof selected === 'string') {
@@ -124,9 +132,9 @@ export function getSelectedState(state, selected, props = emptyFrozenObject) {
 
 export function checkActionCondition(action, condition) {
   if (
-    (typeof condition === 'function' && condition(action)) ||
-    (typeof condition === 'string' && action.type === condition) ||
-    (Array.isArray(condition) && condition.some(c => (typeof c === 'function' ? c(action) : c === action.type)))
+    (typeof condition === 'function' && condition(action))
+    || (typeof condition === 'string' && action.type === condition)
+    || (Array.isArray(condition) && condition.some(c => (typeof c === 'function' ? c(action) : c === action.type)))
   ) {
     return true;
   }

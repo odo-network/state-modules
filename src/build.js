@@ -11,9 +11,11 @@ function handleBoundAction(...fnargs) {
     } else if (typeof arg === 'object' && !Array.isArray(arg)) {
       Object.assign(createdAction, arg);
     } else {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${this.mid} | called action "${this.cid}.${
-        createdAction.type
-      }" with too many arguments - argument ${idx} and onward are invalid.`);
+      throw new Error(
+        `[${MODULE_NAME}] | ERROR | Module ${this.mid} | called action "${this.cid}.${
+          createdAction.type
+        }" with too many arguments - argument ${idx} and onward are invalid.`,
+      );
     }
   });
   return this.dispatch(createdAction);
@@ -41,9 +43,11 @@ function handleBuildActions(descriptor, component, actions, _obj) {
         return handleBuildActions(descriptor, component, args, obj[_type]);
       }
       if (obj[_type]) {
-        throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action "${
-          component.config.cid
-        }.${_type}" already exists on the module.`);
+        throw new Error(
+          `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | component action "${
+            component.config.cid
+          }.${_type}" already exists on the module.`,
+        );
       } else if (args === null) {
         args = [];
       }
@@ -75,9 +79,11 @@ function handleBuildSelectors(descriptor, component) {
 
   for (const selectorID of Object.keys(component.selectors)) {
     if (descriptor.selectors[selectorID]) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-        descriptor.config.mid
-      } | Selector ID "${selectorID}" was already added to the state module.`);
+      throw new Error(
+        `[${MODULE_NAME}] | ERROR | Module ${
+          descriptor.config.mid
+        } | Selector ID "${selectorID}" was already added to the state module.`,
+      );
     }
     descriptor.selectors[selectorID] = utils.buildSelectors(
       descriptor,
@@ -101,9 +107,11 @@ function handleBuildReducers(descriptor, component) {
 function handleBuildHelpers(descriptor, component) {
   for (const helperID of Object.keys(component.helpers)) {
     if (utils.hasProperty(descriptor.helpers, helperID)) {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
-        component.config.cid
-      } | Defined routes but no matching effects exist.`);
+      throw new Error(
+        `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
+          component.config.cid
+        } | Defined routes but no matching effects exist.`,
+      );
     }
     descriptor.helpers[helperID] = component.helpers[helperID];
   }
@@ -119,9 +127,11 @@ function handleBuildEffects(descriptor, component) {
     const map = descriptor.effects.get(type) || new Map();
     const effect = component.effects[_type];
     if (typeof effect !== 'function') {
-      throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
-        component.config.cid
-      } | Route "${_type}" defined in routes but no matching effect exists.`);
+      throw new Error(
+        `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
+          component.config.cid
+        } | Route "${_type}" defined in routes but no matching effect exists.`,
+      );
     }
     map.set(component.config.cif, effect);
     descriptor.effects.set(type, map);
@@ -165,9 +175,11 @@ async function loadComponentScope(descriptor, component, args) {
       descriptor.scope[component.config.scopeID || component.config.cid] = scope;
     }
   } catch (e) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
-      component.config.cid
-    } | Error while attempting to load scope: "${e.message}"`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component ${
+        component.config.cid
+      } | Error while attempting to load scope: "${e.message}"`,
+    );
   }
 }
 
@@ -189,9 +201,11 @@ function verifyStateComponent(descriptor, _component) {
     return;
   }
   if (typeof component.config !== 'object' || !component.config.cid) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      descriptor.config.mid
-    } | Component didn't have a config or Component.config.cid was not defined`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${
+        descriptor.config.mid
+      } | Component didn't have a config or Component.config.cid was not defined`,
+    );
   }
 
   return component;
@@ -202,9 +216,11 @@ export default function handleNewStateComponent(descriptor, _component, args) {
 
   if (descriptor.components.has(component.config.cid)) {
     /* Only allow each cid to be registered once - using symbols for modules may be best? */
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component "${
-      component.config.cid
-    }" has already been defined and may not be defined again`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${descriptor.config.mid} | Component "${
+        component.config.cid
+      }" has already been defined and may not be defined again`,
+    );
   }
 
   component.config.prefix = component.config.prefix ? `${toSnakeCase(component.config.prefix)}_` : '';
@@ -225,8 +241,7 @@ export default function handleNewStateComponent(descriptor, _component, args) {
     return;
   }
   if (component.scope) {
-    return loadComponentScope(descriptor, component, args).then(() =>
-      loadAsynchronousComponentProperties(descriptor, component, args));
+    return loadComponentScope(descriptor, component, args).then(() => loadAsynchronousComponentProperties(descriptor, component, args));
   }
 
   return loadAsynchronousComponentProperties(descriptor, component, args);

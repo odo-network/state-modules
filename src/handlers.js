@@ -81,9 +81,11 @@ export function actionHook(hookID, descriptor, action) {
   }
 
   if (nextAction !== null && !nextAction.type) {
-    throw new Error(`[${MODULE_NAME}] | ERROR | Module ${
-      descriptor.config.mid
-    } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`);
+    throw new Error(
+      `[${MODULE_NAME}] | ERROR | Module ${
+        descriptor.config.mid
+      } | A middleware hook mutated the "action" and it no longer has a type property.  Expects { type: string, ... }`,
+    );
   }
 
   return nextAction;
