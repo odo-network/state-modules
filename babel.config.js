@@ -10,12 +10,10 @@ module.exports = function getBabelConfiguration(api) {
           shippedProposals: true,
           useBuiltIns: 'usage',
           targets: {
-            node: '9',
-            browsers: ['last 2 versions'],
+            node: '10',
           },
         },
       ],
-      ...(process.env.NODE_ENV === 'production' ? ['babel-preset-minify'] : []),
     ].filter(Boolean),
     plugins: [
       '@babel/plugin-proposal-class-properties',
